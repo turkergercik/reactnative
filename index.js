@@ -2,7 +2,7 @@
  * @format
  */
 import { NavigationContainer,useNavigationContainerRef } from '@react-navigation/native';
-import {AppRegistry,PermissionsAndroid,AppState,Linking,Alert, View,Text,TouchableOpacity} from 'react-native';
+import {AppRegistry,PermissionsAndroid,AppState,Linking,Alert, View,Text,TouchableOpacity,NativeModules} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
 import messaging from '@react-native-firebase/messaging';
@@ -17,14 +17,19 @@ import { io } from 'socket.io-client';
 import { Auth } from './Authcontext';
 import { useAuthorization } from './Authcontext';
 import RNExitApp from 'react-native-exit-app';
-import BackgroundFetch from "react-native-background-fetch";
+import { useNetInfo,fetch } from "@react-native-community/netinfo";
+import axios from 'axios';
+import ShortUniqueId from 'short-unique-id';
+
+const {pause}=NativeModules
 //example
 let x=false
 let call=null
 let id=null
 let socket=null
-let call1=false
-let server ="http://192.168.1.106:3001"
+let call1=null
+let server ="http://192.168.1.108:3001"
+const d =new ShortUniqueId({length:10})
 //let server ="https://smartifier.onrender.com"
 //const {state,authContext,img,remoteRTCMessage,seticall,icall,currentconv,setmessages,istoday,stat,setstat} = useAuthorization()
 
@@ -220,12 +225,22 @@ console.log("kı")
     if(remoteMessage.data.title==="newconversation"){
       let all1=await AsyncStorage.getItem("mpeop")
       if(all1){
-  let all=JSON.parse(all1)
-  let newconv =JSON.parse(remoteMessage.data.conversation)
-  all=[...all,newconv]
-  await AsyncStorage.setItem("mpeop",JSON.stringify(all))
-  
-      }
+        let all=JSON.parse(all1)
+        let newconv =JSON.parse(remoteMessage.data.conversation)
+        let check = await AsyncStorage.getItem(newconv._id)
+        let message =JSON.parse(remoteMessage.data.message)
+        if(check){
+        
+        }else{
+          all=[...all,newconv]
+          let day = {date:new Date(Date.now()).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"}),type:"day",_id:d()}
+        
+          await AsyncStorage.setItem("mpeop",JSON.stringify(all))
+          await AsyncStorage.setItem(newconv._id,JSON.stringify([message,day]))
+        
+        }
+        
+            }
   
     }else if(remoteMessage.data.title==="updateconversation"){
       let all1=await AsyncStorage.getItem("mpeop")
@@ -262,6 +277,9 @@ console.log("kı")
   await AsyncStorage.setItem("mpeop",JSON.stringify(all))
   
     }
+  }else if(remoteMessage.data.title==="endCall"){
+    //call1=false
+    pause.pause()
   }
  
     console.log("kıkı")
@@ -297,8 +315,18 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
     if(all1){
 let all=JSON.parse(all1)
 let newconv =JSON.parse(remoteMessage.data.conversation)
-all=[...all,newconv]
-await AsyncStorage.setItem("mpeop",JSON.stringify(all))
+let check = await AsyncStorage.getItem(newconv._id)
+let message =JSON.parse(remoteMessage.data.message)
+if(check){
+
+}else{
+  all=[...all,newconv]
+  let day = {date:new Date(Date.now()).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"}),type:"day",_id:d()}
+
+  await AsyncStorage.setItem("mpeop",JSON.stringify(all))
+  await AsyncStorage.setItem(newconv._id,JSON.stringify([message,day]))
+
+}
 
     }
 
@@ -354,7 +382,9 @@ await AsyncStorage.setItem("mpeop",JSON.stringify(all))
     //RootNavigation.navigate("Chat")
     //startApp()
     call1=true
-    RNCallKeep.backToForeground()
+    pause.play()
+    //Linking.openURL("mychat://")
+    //RNCallKeep.backToForeground()
     //RNCallKeep.displayIncomingCall("123","1",`${remoteMessage.data.title} from v1`);
   setTimeout(() => {
     RNCallKeep.updateDisplay("123","1", "fegrgee")
@@ -367,6 +397,9 @@ await AsyncStorage.setItem("mpeop",JSON.stringify(all))
 
 
 
+}else if(remoteMessage.data.title==="endCall"){
+  //call1=false
+  pause.pause()
 }
   
  
@@ -452,9 +485,8 @@ await AsyncStorage.setItem("mpeop",JSON.stringify(all))
     
   const [first, setfirst] = useState()
   const [calli, setcalli] = useState(call1)
-
-
-  
+//call=null
+call1=false
     if (isHeadless) {
       // App has been launched in the background by iOS, ignore
       return null;
@@ -462,7 +494,9 @@ await AsyncStorage.setItem("mpeop",JSON.stringify(all))
    
     return(
     <Auth setcalli={setcalli} calli={calli}>
+<GestureHandlerRootView style={{flex:1}}>
       <App setfirst={setfirst} server={server} call={call} socket1={socket} />
+      </GestureHandlerRootView>
       </Auth>
 
     )
@@ -477,7 +511,7 @@ await AsyncStorage.setItem("mpeop",JSON.stringify(all))
     </View>
   );
 } */
-let MyHeadlessTask = async (event) => {
+/* let MyHeadlessTask = async (event) => {
   // Get task id from event {}:
   let taskId = event.taskId;
   let isTimeout = event.timeout;  // <-- true when your background-time has expired.
@@ -500,10 +534,116 @@ let MyHeadlessTask = async (event) => {
   // If you don't do this, your app could be terminated and/or assigned
   // battery-blame for consuming too much time in background.
   BackgroundFetch.finish(taskId);
-}
+} */
+const Backtest = async(w)=>{
+  
+if(w.first===true){
+  let id= await AsyncStorage.getItem("id")
+  if(id){
+    await axios.get(`${server}/suspended/${userId}`).then(async(e)=>{
+      if(e.data.data!==null){
+        let nes=null
+        //await AsyncStorage.removeItem("suspended")
+        //await AsyncStorage.removeItem("1D27wrPxSR")
+        let sss= await AsyncStorage.getItem("suspended")
+        let ss = JSON.parse(sss)
+        if(ss.length!==0){
+          console.log(e.data.data.messages)
+          nes=[...e.data.data.messages,...ss]
+          console.log(nes,78)
+      
+        }else{
+       
+          nes=e.data.data.messages
+        }
+         let suspended = await AsyncStorage.setItem("suspended",JSON.stringify(nes))
+    
+       }
+})
 
+
+let sus = await AsyncStorage.getItem("suspended")
+    let sus1= JSON.parse(sus)
+    if(sus1.length!==0){
+     
+     let saves=[...sus1]
+     const arr = [...sus1];
+     for (const e of arr) {
+      try {
+    console.log(e,24)
+         let day = {date:new Date(Date.now()).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"}),type:"day",_id:d()}
+
+        let conversation = await AsyncStorage.getItem(e.conversationid)
+        if(conversation){
+         let all= JSON.parse(conversation)
+         const b= all.find((e)=>{
+          if( e.type!==undefined){
+            return e
+          }
+        })
+      
+      if(b?.date === day.date){
+       
+        all=[e,...all]
+
+      }else{
+       
+        all=[day,e,...all]
+
+      }
+        
+         console.log(all,20)
+         await AsyncStorage.setItem(e.conversationid,JSON.stringify(all))
+    
+         saves.splice(0,1)
+    
+         await AsyncStorage.setItem("suspended",JSON.stringify(saves))
+       
+        }else{
+          saves.splice(0,1)
+          console.log(25)
+         let news= [e,day]
+         await AsyncStorage.setItem(e.conversationid,JSON.stringify(news))
+         
+        }
+      } catch (error) {
+        console.log(error)
+      }
+      
+     }
+    }
+  }
+  
+  const channelId = await notifee.createChannel({
+    id: 'privatemessage',
+    name: 'privatemessage',
+importance:AndroidImportance.HIGH
+  });
+
+ /*  notifee.displayNotification({
+    body: 'Mesajlar Eşitleniyor.',
+    android: {
+      channelId,
+      // Recommended to set a category
+      category: AndroidCategory.CALL,
+      // Recommended to set importance to high
+      importance: AndroidImportance.HIGH,
+      fullScreenAction: {
+        id: 'default',
+        mainComponent: 'custom-component',
+      },
+    },
+  }); */
+}
+  fetch().then(state => {
+    console.log("Connection type", state.type);
+    console.log("Is connected?", state.isConnected);
+  });
+ 
+
+}
 // Register your BackgroundFetch HeadlessTask
-BackgroundFetch.registerHeadlessTask(MyHeadlessTask);
+AppRegistry.registerHeadlessTask("SomeTaskName",()=>Backtest)
 AppRegistry.registerComponent(appName, () => HeadlessCheck );
 /* AppRegistry.registerComponent('custom-component', () => CustomComponent); */
 //AppRegistry.registerComponent(App, () => HeadlessCheck);

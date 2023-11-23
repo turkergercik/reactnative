@@ -106,8 +106,9 @@ let oid=d()
     }
     mpeop=[...state.mpeop]
     authContext.setmpeop(mpeop)
-    
     await AsyncStorage.setItem("mpeop",JSON.stringify(mpeop))
+    navigation.replace("Chatid",{id:x[0]._id,mpeop:mpeop[index],notid:notificationid,mess:false,newchat:false})
+
 }
 
 if(send===true){

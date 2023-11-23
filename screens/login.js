@@ -137,24 +137,26 @@ export default function Login({route,navigation}) {
   useEffect(() => {
     //bootstrap()
     async function req(){
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-        {
-          title: 'Cool Photo App Camera Permission',
-          message:
-            'Cool Photo App needs access to your camera ' +
-            'so you can take awesome pictures.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-      if(granted){
-        token1 = await messaging().getToken();
-
-         settoken(token1)
-        console.log(token1)
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        )
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('You can use the camera');
+        } else {
+          console.log('Camera permission denied');
+        }
+        if(granted){
+          token1 = await messaging().getToken();
+  
+           settoken(token1)
+          console.log(token1)
+        }
+        
+      } catch (error) {
+        
       }
+     
       
     }
     req()

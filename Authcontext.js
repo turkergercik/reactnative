@@ -1,4 +1,5 @@
 import {createContext,useReducer,useMemo,useContext,useState,useRef} from 'react';
+import { Dimensions,StatusBar } from 'react-native';
 const initialLoginState = {
     isLoading: true,
     userName: null,
@@ -16,12 +17,15 @@ export const useAuthorization = () => {
       return context;
   };
 export function Auth({children,setcalli,socketi,calli}){
+    const {width,height}=Dimensions.get("window")
+    const height1=Dimensions.get("screen").height
+    const n=height1-height-StatusBar.currentHeight
     const routeNameRef =useRef()
     const allm =useRef([])
     const messageRef =useRef()
     const rr =useRef(false)
     const offlinepause = useRef({audio:true,video:true}) 
-    let server ="http://192.168.1.106:3001"
+    let server ="http://192.168.1.108:3001"
     //const server = "https://smartifier.onrender.com"
     const socket = useRef(null)
     const rtcm =useRef()
@@ -32,8 +36,10 @@ export function Auth({children,setcalli,socketi,calli}){
     });
     const check = useRef(null)
     const [img, setimg] = useState(null);
+    const [navbar, setnavbar] = useState(n);
     const img7 = useRef(true)
     const [auth, setauth] = useState(null)
+    const [ss, setss] = useState(false)
     const [rot, setrot] = useState(false)
     const [userToken, setuserToken] = useState()
     const istoday = useRef({})
@@ -124,7 +130,7 @@ export function Auth({children,setcalli,socketi,calli}){
         []
       );
 return(
-<AuthContext.Provider value={{calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
+<AuthContext.Provider value={{ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
 {children}
 </AuthContext.Provider>
 )

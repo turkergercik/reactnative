@@ -241,6 +241,8 @@ setTimeout(() => {
                 processCall()
              
             }
+          }).catch((e)=>{
+            console.log(e)
           })
 
          }
@@ -390,7 +392,7 @@ peerConnection.current.onnegotiationneeded = (event) => {
 
           check.current=null
           seticall(false)
-          socket.current.emit("endCall",otherid)
+          socket.current.emit("endCall",otherid,notid)
           peerConnection.current.close()
           peerConnection.current=null
           callst.current=false

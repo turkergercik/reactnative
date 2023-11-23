@@ -195,7 +195,7 @@ if(e.date===new Date(Date.now()).toLocaleDateString("tr-TR",{day:"2-digit",month
     
       setmessages(x.slice(0,a[d]+1))
     }else{
-      
+
       setmessages(x)
     }
     navigation.navigate("Chatid",{id:mpeop1._id,pp:pp,mpeop:mpeop1,notid:notid.current,mess:true,newchat:false})

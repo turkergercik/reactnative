@@ -33,6 +33,7 @@ const Chat = ({navigation}) => {
   }
   const scale = useSharedValue(1)
   const opacity = useSharedValue(1)
+  const lasto = useRef(null)
   //const isopen = useSharedValue(null)
   const images = [
     {
@@ -93,7 +94,7 @@ const Chat = ({navigation}) => {
     }
    
     token=res.data
-
+console.log(res.data)
     //.sort((a,b)=>a.members[3].localeCompare(b.members[3]))
     //dispatch(setmpeop(res.data))
     authContext.setmpeop(res.data)
@@ -113,30 +114,9 @@ const Chat = ({navigation}) => {
 
 
 
-    
+    let x
   useLayoutEffect(()=>{
-    Orientation.lockToPortrait()
-    Orientation.addDeviceOrientationListener((e)=>{
-     
-      if(e==="PORTRAIT"){
-        setss(true)
-       
-      Orientation.lockToPortrait()
-      
-      }else if(e==="LANDSCAPE-LEFT"){
-        setss(true)
-        Orientation.lockToLandscape()
-      
-      }
-
-      opacity.value=withTiming(0,{duration:500},()=>{
-        opacity.value=1
-      })
-      setTimeout(() => {
-        
-        setss(false)
-      }, 450);
-    })
+    
     //StatusBar.setBackgroundColor("red")
    /*  setTimeout(() => {
       SystemNavigationBar.fullScreen(true)
@@ -152,9 +132,7 @@ const Chat = ({navigation}) => {
    get1()
    a()
 
-return ()=>{
-  Orientation.removeAllListeners()
-}
+
 
    },[])
   const data = [
@@ -174,9 +152,7 @@ return ()=>{
   return (
 
     <View style={[styles.body]}>
-{ss && <Animated.View style={{position:"absolute",top:0,bottom:0,right:0,left:0,zIndex:5,backgroundColor:"black",opacity:opacity}}>
 
-</Animated.View>}
 {/* <View style={{position:"absolute",width:"100%",height:"100%",backgroundColor:"red",zIndex:1}} >
       <Photo img={images[0].uri}></Photo>
     

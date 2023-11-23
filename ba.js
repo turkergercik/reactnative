@@ -267,16 +267,16 @@ useEffect(() => {
   useEffect(() => {
     
     //StatusBar.setTranslucent(true)
-    StatusBar.setBackgroundColor("black")
+    StatusBar.setBackgroundColor("blue")
 
-    //SystemNavigationBar.fullScreen(true)
+    SystemNavigationBar.fullScreen(false)
    //SystemNavigationBar.lowProfile()
    //SystemNavigationBar.navigationShow()
    //SystemNavigationBar.setNavigationColor('translucent');
 
     //SystemNavigationBar.setNavigationColor("translucent")
      //SystemNavigationBar.setNavigationColor('hsla(0, 100%, 50%, 1)');
-     SystemNavigationBar.setNavigationColor("black")
+     SystemNavigationBar.setNavigationColor("red")
  
    //SystemNavigationBar.setNavigationColor("transparent",undefined,"navigation")
     //SystemNavigationBar.navigationShow()
@@ -765,68 +765,36 @@ if(offlinepause.current.video===true){
     }
   }, [state.userId]);
   let x 
-  let y
-  let z
 useEffect(() => {
-  /* Dimensions.addEventListener("change",(e)=>{
-    clearTimeout(x)
-    opacity.value=1
-    setss(true)
-    opacity.value=withTiming(0,{duration:750},()=>{
-      //opacity.value=1
-    })
-    x= setTimeout(() => {
-      setss(false)
-    }, 650);
-
-   }) */
-
-
-  /* Orientation.lockToPortrait()
+  Orientation.lockToPortrait()
     lasto.current="PORTRAIT" 
     Orientation.addDeviceOrientationListener((e)=>{
      clearTimeout(x)
-    clearTimeout(y)
       if(e==="PORTRAIT" && lasto.current!=="PORTRAIT" ){
         opacity.value=1
         setss(true)
-  
         lasto.current="PORTRAIT" 
         setnavbar(n)
       Orientation.lockToPortrait()
       
       }else if(e==="LANDSCAPE-LEFT" && lasto.current!=="LANDSCAPE-LEFT" ){
-
         opacity.value=1
-        setss(true)
- z= setTimeout(() => {
-    
-    StatusBar.setBackgroundColor("transparent")
-    SystemNavigationBar.setNavigationColor("transparent")
-  }, 10);
-          
-    
 
+        setss(true)
         lasto.current="LANDSCAPE-LEFT" 
         setnavbar(0)
         Orientation.lockToLandscape()
       
       }
 
-      opacity.value=withTiming(0,{duration:750},()=>{
+      opacity.value=withTiming(0,{duration:600},()=>{
         //opacity.value=1
       })
-     y= setTimeout(() => {
-      if(lasto.current=="PORTRAIT"){
-        StatusBar.setBackgroundColor("black",true)
-        SystemNavigationBar.setNavigationColor("black",)
-      
-      }
-      }, 500);
      x= setTimeout(() => {
+        
         setss(false)
-      }, 650);
-    }) */
+      }, 600);
+    })
 
     return ()=>{
       Orientation.removeAllListeners()
@@ -1027,9 +995,9 @@ color.value="white"
   return (
     <View style={{flex:1,backgroundColor:"black"}}>
      
-    <GestureHandlerRootView style={{flex:1,backgroundColor:"black"}}>
+    <GestureHandlerRootView style={{flex:1,backgroundColor:"transparent"}}>
 
-      <NavigationContainer linking={linking} ref={navigationRef} theme={{colors:{background:"black"}}}>
+      <NavigationContainer linking={linking} ref={navigationRef}>
      
       
 

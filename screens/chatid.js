@@ -1,7 +1,5 @@
-import { View, Text,StyleSheet,Modal,FlatList, KeyboardAvoidingView,useWindowDimensions, Alert,BackHandler,TouchableOpacity,Keyboard } from 'react-native'
+import { View, Text,StyleSheet,Modal,FlatList, StatusBar,KeyboardAvoidingView,useWindowDimensions, Alert,BackHandler,TouchableOpacity,Keyboard,Dimensions } from 'react-native'
 import React,{useContext,useEffect, useState,useRef} from 'react'
-import { Dimensions } from 'react-native'
-import { StatusBar } from 'react-native'
 import { useAuthorization } from '../Authcontext'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRoute,useIsFocused } from '@react-navigation/native'
@@ -11,7 +9,7 @@ import Mess from '../components/mess'
 import Conv from '../components/conv'
 import { TextInput } from 'react-native'
 import { Gesture, GestureDetector, GestureHandlerRootView,ScrollView } from 'react-native-gesture-handler';
-import Animated ,{ Extrapolation,useAnimatedKeyboard, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming,AnimatedLayout, FadeIn, Layout, SlideInDown, SlideInUp, SlideOutUp, SlideInRight, SlideInLeft } from 'react-native-reanimated'
+import Animated ,{ Extrapolation,useAnimatedKeyboard, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming,AnimatedLayout, FadeIn, Layout, SlideInDown, SlideInUp, SlideOutUp, SlideInRight, SlideInLeft, withSpring,Easing } from 'react-native-reanimated'
 //import ImageView from "react-native-image-viewing";
 import ImageViewer from "react-native-reanimated-image-viewer";
 //import ImageViewer from './imageviewerback'
@@ -25,15 +23,19 @@ import MaskedView from '@react-native-masked-view/masked-view'
 import { useAnimatedScrollHandler } from 'react-native-reanimated'
 import Mess2 from '../components/mess2'
 import ShortUniqueId from 'short-unique-id';
+import {useKeyboard} from '@react-native-community/hooks'
 const {width,height} =Dimensions.get("window")
+const height1=Dimensions.get("screen").height
+//const navbar=height1-height-StatusBar.currentHeight
 const as= StatusBar.currentHeight
 let img
 const Chatid = ({route,navigation,setmesnotif}) => {
+  const keyboardh = useKeyboard().keyboardHeight
   const d =new ShortUniqueId({length:10})
   const scrollY = useSharedValue(0)
   const st = useSharedValue(0)
   const stat1 = useSharedValue(0)
-
+  const key = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler((event) => {
     console.log("45")
     scrollY.value = event.contentOffset.y})
@@ -62,7 +64,7 @@ const images = [
     uri: "https://images.unsplash.com/photo-1569569970363-df7b6160d111",
   },
 ];
-const{auth,setauth,messages,setmessages,currentconv,messageRef,userid,server,state,socket,setstat,rr,stat,authContext,check,allm}=useAuthorization()
+const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,server,state,socket,setstat,rr,stat,authContext,check,allm,setss}=useAuthorization()
 
   const a = useRoute()
   let other
@@ -74,7 +76,9 @@ const{auth,setauth,messages,setmessages,currentconv,messageRef,userid,server,sta
   let mpeop =route?.params?.mpeop
   let messa= route?.params?.mess
   let newchat= route?.params?.newchat
-  
+
+
+  console.log(mpeop,41)
  const today = useRef(false)
   const scroll = useRef()
   const input = useRef(null)
@@ -92,6 +96,8 @@ const{auth,setauth,messages,setmessages,currentconv,messageRef,userid,server,sta
   const[text,settext]=useState(null)
   const [img, setimg] = useState(null)
   const [inp, setinp] = useState(false)
+  const [w, setw] = useState(null)
+  const [h, seth] = useState(null)
   const[focus,setfocus]=useState(false)
   //const[stat,setstat]=useState(false)
   const[zoom,setzoom]=useState(false)
@@ -103,7 +109,7 @@ const{auth,setauth,messages,setmessages,currentconv,messageRef,userid,server,sta
   const zoom1= useSharedValue(false)
   const translationX= useSharedValue(1)
   const translationY= useSharedValue(0)
-  const keyboard= useSharedValue(false)
+  const keyboard= useSharedValue(-1)
   const transX= useSharedValue(0)
   const lastx= useSharedValue(0)
   const lasty= useSharedValue(0)
@@ -116,6 +122,8 @@ const{auth,setauth,messages,setmessages,currentconv,messageRef,userid,server,sta
 
 
 useEffect(() => {
+  
+  
   currentconv.current=id
   check.current=newchat
   console.log(check.current)
@@ -130,6 +138,7 @@ useEffect(() => {
   const animatedStyle12 = useAnimatedStyle(() => {
     
     return {
+     
       opacity: opacity.value,
     };
   });
@@ -385,8 +394,12 @@ async function all(){
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
       (e) => {
+        key.value=e.endCoordinates.height
         //setKeyboardVisible(e.endCoordinates.height); // or some other action
-        //keyboard.value=withTiming(e.endCoordinates.height,{duration:150})
+        keyboard.value=withTiming(-e.endCoordinates.height,{
+          duration: 50,
+          easing: Easing.in(Easing.bezierFn(0.7, 0.88, 0.49, 0.95)),
+        })
       }
     );
     const keyboardDidHideListener = Keyboard.addListener(
@@ -395,10 +408,12 @@ async function all(){
         setfocus(false)
         inputT.current.blur()
         //setKeyboardVisible(false); // or some other action
-        keyboard.value=(0)
+         keyboard.value=withTiming(0,{
+          duration:150,
+          easing: Easing.out(Easing.back(0)),
+        })
       }
     );
-
 
 
     const backHandler = BackHandler.addEventListener(
@@ -445,8 +460,8 @@ async function sendTextMessage(){
   console.log(currentconv.current,state.userName)
   inputT.current.clear()
   let x = input.current
-  x =x.trim()
   if(x && x !==""){
+    x =x.trim()
   let date=Date.now()
   console.log(date)
     let newmessage={
@@ -499,11 +514,10 @@ async function sendTextMessage(){
     }
     try {
       await AsyncStorage.setItem(currentconv.current,JSON.stringify(allm.current))
-
       if(check.current===true){
         let a= [...state.mpeop,mpeop]
         authContext.setmpeop(a)
-        socket.current.emit("newconversationonline",otherid,JSON.stringify(mpeop),JSON.stringify(newmessage))
+        socket.current.emit("newconversationonline",otherid,other,JSON.stringify(mpeop),JSON.stringify(newmessage),notid)
         await AsyncStorage.setItem("mpeop",JSON.stringify(a))
         check.current=false
     
@@ -511,6 +525,18 @@ async function sendTextMessage(){
       }else{
   
         socket.current.emit("send",newmessage)
+        await axios.post(`${prt}/messages`,{
+          _id:date,
+          sender:na.id,
+          receiver:otherid,
+          name:state.userName,
+          conversationid:currentconv.current,
+          text:x,
+        }).then(()=>{
+          console.log("gg")
+        }).catch((e)=>{
+          console.log(e)
+        })
       }
     } catch (error) {
       
@@ -597,7 +623,8 @@ if(e){
 const animatedStyle1 = useAnimatedStyle(() => {
     
   return {
-    paddingBottom:keyboard.value? keyboard.value:0,
+    //paddingTop:keyboard.value<0 ? 75+as +keyboardh: 75+as,
+    //paddingBottom:keyboard.value? keyboard.value:0,
     transform:[{translateX:transX.value}]
   };
 });
@@ -620,27 +647,40 @@ console.log(e)
   })
 
 
-  const keyboard1 = useAnimatedKeyboard({isStatusBarTranslucentAndroid:true});
+  //const keyboard1 = useAnimatedKeyboard({isStatusBarTranslucentAndroid:true});
   const translateStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ translateY: -keyboard1.height.value }],
+      //marginBottom:keyboard.value ? -keyboard.value:0
+      transform: [{ translateY: keyboard.value }],
     };
   });
   const kstyle = useAnimatedStyle(() => {
     return {
-      marginBottom:keyboard1.height.value+44+as*2
+      paddingTop:keyboard.value<0 ? 75+as +keyboardh: 75+as,
+      //marginTop:keyboard.value? keyboard.value:0
     };
   });
- 
+ console.log(keyboard.value)
   const translateStyle12 = useAnimatedStyle(() => {
     return {
      marginTop:st.value
     };
   });
+
+  function lay(e){
+
+      setw(Dimensions.get("window").width)
+      seth(Dimensions.get("window").height)
+    
+   
+  }
      return (
-    <GestureDetector  gesture={gesture}>
-    <Animated.View style={[animatedStyle1,{flex:1}]}>
-    <View style={{ paddingTop:StatusBar.currentHeight,flexDirection: "row", height: 75+as, backgroundColor: "gold", justifyContent: "space-between", alignItems: "center" ,position:"absolute",top:0,right:0,left:0,bottom:0,zIndex:1}}>
+    <GestureDetector gesture={gesture}>
+
+    <Animated.View  onLayout={(e)=>{
+   
+    }} style={[animatedStyle1,{flexGrow:1,flexShrink:1,backgroundColor:"black",flexDirection:"column"}]}>
+      <View style={{ paddingTop:StatusBar.currentHeight,flexDirection: "row", height: 75+as, backgroundColor: "gold", justifyContent: "space-between", alignItems: "center" ,zIndex:1}}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={{}} >--</Text>
           {pp       &&    <Image style={{ height: 65, width: 65, backgroundColor: "red", marginHorizontal: 5, borderRadius: 70, resizeMode: "cover" }} source={{ uri: pp }} />
@@ -665,50 +705,14 @@ console.log(e)
           </TouchableOpacity>
         </View>
       </View>
-    <Animated.View style={[style.body,translateStyle,{}]} onPress={() => {
 
-     
-    } }>
-      
-      {/* <FlatList
-      onEndReached={setnewmessages}
-      onEndReachedThreshold={0.7}
-      inverted={true}
-        showsVerticalScrollIndicator={true}
-        data={messages}
-        keyExtractor={item => item._id}
-        renderItem={({ item }) => {
-          return <Mess fontscale={fontScale} messages={item} />
-        } }
-      >
+<ScrollView
 
-      </FlatList> */}
-  <MaskedView
-  androidRenderingMode="software"
-  style={{flex:1,marginBottom:messages.length===1 ? 50 :0}}
-        maskElement={
-          <Animated.View style={[{flex:1}, maskElementPosition]}>
-            <Animated.View style={[kstyle]}>
-            {
-          messages?.map((c,i)=>{
-          
-           return <Mess fontscale={fontScale} messages={c} key={c._id} allmess={messages}  setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={i}/>
-            
-                })
-        }
-        </Animated.View>
-          </Animated.View>
-        }
-      >
-        <Animated.ScrollView
-        
         overScrollMode="always"
           ref={scroll}
           scrollEventThrottle={250}
-          onScroll={scrollHandler}
-          style={[{ zIndex: 1,transform: [{rotate:"180deg"}]}]}
+          style={[{ paddingBottom:10,zIndex: 1,transform: [{rotate:"180deg"}]}]}
         >
-        <Animated.View style={[kstyle]}>
         {
           messages?.map((c,i)=>{
         
@@ -716,67 +720,20 @@ console.log(e)
        
           })
         }
-        </Animated.View>
-        </Animated.ScrollView>
+        </ScrollView>
+        
+        
 
-        <LinearGradient colors={['#0FDED5', '#0569B8', '#0505B8']} style={{position:"absolute",zIndex:0,bottom:0,top:0,left:0,right:0}}>
-      </LinearGradient>
-      </MaskedView>
-
-  
-      {/* <ScrollView 
-    ref={scroll}
-      onScroll={({nativeEvent}) => {
-        var time = last_time_scroll_completed - performance.now()
-        let v = (old_offset-nativeEvent.contentOffset.y)/time
-        if(v>=3){
-
-          console.log(v,8888)
-        }
-        old_offset = nativeEvent.contentOffset.y;
-        last_time_scroll_completed = performance.now();
-        if (isCloseToBottom(nativeEvent) || v>=4.5 ) {
-          setnewmessages()
-        }
-      }}
-      scrollEventThrottle={250}
-      scrollIndicatorInsets={{left:1}}
-      showsVerticalScrollIndicator={true}
-     style={{transform: [{rotate:"180deg"}],zIndex:1,backgroundColor:"black"}}
-
-      >
-        <View style={{flex:1}}>
-        {
-          messages?.map((c,i)=>{
-            return <Mess fontscale={fontScale} messages={c} allmess={messages} key={c.createdAt} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={i}/>
-          })
-        }</View>
-      </ScrollView> */}
-      
-{/* <FlatList
-scrollEnabled
-style={{flexDirection:"column-reverse"}}
-
-data={messages}
-renderItem={({item})=>{
- return <Mess  fontscale={fontScale} messages={item} setimg={setimg}  setIsVisible={setIsVisible}/>
-}}
->
-
-</FlatList> */}
- 
-
-      {/* <View style={{backgroundColor:"white",height:50}}>
-<Text style={{color:"black"}}>
-{messageRef.current}
-</Text>
-    </View> */}
-<Animated.View style={[{flexDirection:"row",alignItems:"center",backgroundColor:"blue",padding:5}]} >
+       
+<View style={[{overflow:"hidden",flexShrink:1,flexDirection:"row",alignItems:"center",backgroundColor:"blue",padding:5}]} >
   <TextInput 
   //onKeyPress={foc}
   //onPressIn={foc}
   ref={inputT}
-
+onPressOut={()=>{
+  //inputT.current.blur()
+}}
+//showSoftInputOnFocus={false}
   //showSoftInputOnFocus={inp}
   onFocus={()=>setfocus(true)}
   onChangeText={(e)=>{
@@ -790,44 +747,9 @@ renderItem={({item})=>{
   cursorColor={"blue"}
   style={{backgroundColor:"red",width:"100%",maxHeight:95,borderRadius:16,padding:3,paddingVertical:7,fontSize:23/fontScale}}/>
 <TouchableOpacity style={{height:40,backgroundColor:"blue",position:"absolute",right:10,width:50,borderRadius:10}} onPress={()=>sendTextMessage()}/>
-</Animated.View>
-{/* <View style={{display:img ? "flex":"none",position:"absolute",top:0,bottom:0,right:0,left:0}}>
-{<GestureDetector style={{backgroundColor:"red",flex:1}} gesture={pan}>
-<Animated.View style={[{flex:1,backgroundColor:"black",position:"absolute",top:0,bottom:0,right:0,left:0},f]}>
-<ReactNativeZoomableView
-maxZoom={3}
-minZoom={1}
-zoomStep={1}
-visualTouchFeedbackEnabled={false}
-doubleTapDelay={175}
-initialZoom={1}
-bindToBorders={true}
-onZoomAfter={this.logOutZoomState}
-onZoomBefore={()=>{
-  //zoom1.value=true
-}}
-style={{
- backgroundColor: 'transparent',
-}}
->
-<Animated.Image source={{uri:img? img:null}} style={[{height:"100%",width:"100%",alignSelf:"center"}]} resizeMode="contain" />
-</ReactNativeZoomableView>
-</Animated.View>
-</GestureDetector>} */}
-  {/*   {
+</View>
 
-      img && <View style={{backgroundColor:"transparent",position:"absolute",top:0,right:-1,left:0,bottom:0,zIndex:1}}>
-
-     
-  
-      </View>
-    } */}
-
-
-
-</Animated.View>
-
-</Animated.View>
+    </Animated.View>
 </GestureDetector>
 
   
@@ -840,7 +762,7 @@ const style= StyleSheet.create({
         flexDirection:"column",
         justifyContent:"space-between",
         flex:1,
-        paddingBottom:48,
+       
        
       
         

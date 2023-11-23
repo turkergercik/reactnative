@@ -168,11 +168,11 @@ useEffect(()=>{
 translateY.value=withTiming(SCREEN_HEIGHT/4)
 const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
   //translateY.value=withTiming(SCREEN_HEIGHT/100)
-  setkeyboard(true);
+ // setkeyboard(true);
 });
 const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
   translateY.value=withTiming(SCREEN_HEIGHT/4)
-  setkeyboard(false);
+  //setkeyboard(false);
 });
 
 return () => {
@@ -182,13 +182,9 @@ return () => {
 },[])
 
   return (
-    
-    <GestureDetector gesture={gesture}>
-      <Animated.View  style={[style.body,rBottomSheetStyle]}> 
-      <KeyboardAvoidingView  style={style.bodysmall}>
-      <View style={{backgroundColor:"black",borderRadius:4 ,height:8,width:"18%",position:"absolute",top:0,alignSelf:"center",marginTop:10}}>
+<KeyboardAvoidingView behavior="padding"  style={style.body}>
+      <View style={style.bodysmall}>
 
-      </View>
     
       <Text  style={{alignSelf:"flex-start",marginLeft:5,marginBottom:5,color:darktext}}>Name</Text>
         <TextInput onFocus={()=>setname("")} inputMode="text" autoCapitalize='none' keyboardType="default" onBlur={()=>
@@ -250,11 +246,9 @@ return () => {
 </Button> */}
 
 
+    </View>
     </KeyboardAvoidingView>
- <View style={{backgroundColor:"red",width:"100%",position:"absolute",bottom:0}}>
-  <Text>wewe</Text>
- </View>
-    </Animated.View></GestureDetector>
+
   )
 
 
@@ -264,17 +258,12 @@ return () => {
 
 const style= StyleSheet.create({
     body:{
-      position:"absolute",
-      top:0,
-      bottom:0,
-      left:0,
-      right:0,
-      marginTop:0,
+      flex:1,
       borderTopRightRadius:15,
       borderTopLeftRadius:15,
       backgroundColor:"#C3E4ED",
-
-    alignItems: 'center', justifyContent: 'center',
+      alignItems: 'center', 
+      justifyContent: "center",
 
     },bodysmall:{
        

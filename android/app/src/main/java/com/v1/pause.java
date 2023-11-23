@@ -1,6 +1,7 @@
 package com.v1;
 
 import android.app.Activity;
+import android.content.Intent;
 
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -27,6 +28,13 @@ public class pause extends ReactContextBaseJavaModule {
     public void pause() {
         Activity activity = mReactContext.getCurrentActivity();
         activity.moveTaskToBack(true);
+        activity.finishAffinity();
+    }
+    @ReactMethod
+    public void play() {
+        Intent intent = new Intent(mReactContext, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        mReactContext.startActivity(intent);
     }
 
 }
