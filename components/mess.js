@@ -1,10 +1,14 @@
-import { View, Text,Image,StyleSheet, TouchableOpacity,Modal,useWindowDimensions, Alert } from 'react-native'
+import { View, Text,Image,StyleSheet, TouchableOpacity,Modal,useWindowDimensions, Alert,PermissionsAndroid } from 'react-native'
 import React,{useState} from 'react'
 //import ImageView from "react-native-image-viewing";
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthorization } from '../Authcontext';
 import Animated,{Layout,SlideInLeft, SlideInUp} from 'react-native-reanimated';
+import { CameraRoll } from "@react-native-camera-roll/camera-roll";
+import { permissions } from 'react-native-webrtc';
+import { Buffer } from 'buffer';
+import RNFetchBlob from 'rn-fetch-blob';
 const Mess = ({messages,allmess,fontscale,setIsVisible,setimg,userId,k,style1,st}) => {
 const nav =useNavigation()
 let before = allmess[k+1]
@@ -93,6 +97,28 @@ return(
         //img.current=messages.media
         //setimg(messages.media)
         //setIsVisible(true)
+      }}
+      onLongPress={()=>{
+        Alert.alert('Alert Title', 'My Alert Msg', [
+          {
+            text: 'İptal',
+            onPress: () => {},
+            style:"cancel",
+          },
+          {text: 'Kaydet', onPress: async() => {
+            let Base64Code = messages.media.split("data:image/jpeg;base64,"); //base64Image is my image base64 string
+
+            const dirs = RNFetchBlob.fs.dirs;
+            
+            let path = dirs.CacheDir + "/image.jpeg";
+            //RNFetchBlob.fs.writeFile(path, RNFetchBlob.base64.encode(Base64Code), 'base64').then((res) => {console.log("File : ", res)})
+            RNFetchBlob.fs.writeFile(path, Base64Code[1], 'base64')
+            .then((res) => {console.log("File : ", res)});
+            console.log(path)
+            CameraRoll.save(`file://${path}`,{type:"photo"})
+          }
+          },
+        ]);
       }}
       >
         <Image  style={{height:200,width:200,resizeMode:"cover",borderRadius:7}} source={{uri:messages.media}} />

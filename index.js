@@ -28,9 +28,9 @@ let call=null
 let id=null
 let socket=null
 let call1=null
-let server ="http://192.168.1.108:3001"
+//let server ="http://192.168.1.108:3001"
 const d =new ShortUniqueId({length:10})
-//let server ="https://smartifier.onrender.com"
+let server ="https://smartifier.onrender.com"
 //const {state,authContext,img,remoteRTCMessage,seticall,icall,currentconv,setmessages,istoday,stat,setstat} = useAuthorization()
 
 async function bootstrap() {

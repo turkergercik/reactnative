@@ -2,6 +2,7 @@ package com.v1;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -29,6 +30,17 @@ public class pause extends ReactContextBaseJavaModule {
         Activity activity = mReactContext.getCurrentActivity();
         activity.moveTaskToBack(true);
         activity.finishAffinity();
+    }
+    @ReactMethod
+    public void  setP(String orientation) {
+        Activity activity = mReactContext.getCurrentActivity();
+        if(orientation.equals("p")){
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }else{
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+
+
     }
     @ReactMethod
     public void play() {

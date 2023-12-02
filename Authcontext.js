@@ -25,8 +25,8 @@ export function Auth({children,setcalli,socketi,calli}){
     const messageRef =useRef()
     const rr =useRef(false)
     const offlinepause = useRef({audio:true,video:true}) 
-    let server ="http://192.168.1.108:3001"
-    //const server = "https://smartifier.onrender.com"
+    //let server ="http://192.168.1.108:3001"
+    const server = "https://smartifier.onrender.com"
     const socket = useRef(null)
     const rtcm =useRef()
     const userid1 =useRef()
@@ -37,7 +37,8 @@ export function Auth({children,setcalli,socketi,calli}){
     const check = useRef(null)
     const [img, setimg] = useState(null);
     const [navbar, setnavbar] = useState(n);
-    const img7 = useRef(true)
+    const cam = useRef(false)
+    const[camopen,setcamopen]=useState(false)
     const [auth, setauth] = useState(null)
     const [ss, setss] = useState(false)
     const [rot, setrot] = useState(false)
@@ -130,7 +131,7 @@ export function Auth({children,setcalli,socketi,calli}){
         []
       );
 return(
-<AuthContext.Provider value={{ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
+<AuthContext.Provider value={{cam,camopen,setcamopen,ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
 {children}
 </AuthContext.Provider>
 )

@@ -89,7 +89,7 @@ return(
         //rr.value=true
         nav.navigate("Photo",{img1:messages.media})
         //img.current=messages.media
-        //setimg(messages.media)
+        setimg(messages.media)
         //setIsVisible(true)
       }}
       >
@@ -107,7 +107,7 @@ return(
           nav.navigate("Photo",{img1:messages.media})
           
     
-        //setimg(messages.media)
+        setimg(messages.media)
         //setIsVisible(true)
       }}
       ><Image  style={{height:200,width:200,resizeMode:"cover",borderRadius:7}} source={{uri:messages.media}} /></TouchableOpacity>:<Text style={{fontSize:20}}>{messages.text}</Text>}

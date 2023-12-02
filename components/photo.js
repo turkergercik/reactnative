@@ -6,9 +6,9 @@ import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { runOnJS } from 'react-native-reanimated';
 import { useRoute, } from '@react-navigation/native';
 import { useAuthorization } from '../Authcontext';
-const Photo = ({route,navigation,setimg,onRequestClose}) => {
+const Photo = ({route,navigation,onRequestClose}) => {
   //SystemNavigationBar.fullScreen(true)
-  const {setstat,rr} = useAuthorization()
+  const {setstat,rr,setimg} = useAuthorization()
   const state = useRoute();
  // Alert.alert(state.params.img.toString())
   const img1 = route?.params?.img1
@@ -16,7 +16,7 @@ const Photo = ({route,navigation,setimg,onRequestClose}) => {
   useEffect(() => {
     //setstat(true)
     //rr.value=true
-    //StatusBar.setTranslucent(true)
+    StatusBar.setTranslucent(true)
     StatusBar.setHidden(true)
     SystemNavigationBar.navigationHide()
     //SystemNavigationBar.fullScreen(true)
@@ -24,6 +24,7 @@ const Photo = ({route,navigation,setimg,onRequestClose}) => {
     //StatusBar.setBackgroundColor("transparent")
   
     return () => {
+      setimg(null)
      /*  rr.value=false
       setstat(false) */
       //SystemNavigationBar.fullScreen(false)

@@ -10,6 +10,7 @@ import Conv from '../components/conv'
 import { TextInput } from 'react-native'
 import { Gesture, GestureDetector, GestureHandlerRootView,ScrollView } from 'react-native-gesture-handler';
 import Animated ,{ Extrapolation,useAnimatedKeyboard, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming,AnimatedLayout, FadeIn, Layout, SlideInDown, SlideInUp, SlideOutUp, SlideInRight, SlideInLeft, withSpring,Easing } from 'react-native-reanimated'
+import { Transition } from 'react-native-reanimated';
 //import ImageView from "react-native-image-viewing";
 import ImageViewer from "react-native-reanimated-image-viewer";
 //import ImageViewer from './imageviewerback'
@@ -24,12 +25,61 @@ import { useAnimatedScrollHandler } from 'react-native-reanimated'
 import Mess2 from '../components/mess2'
 import ShortUniqueId from 'short-unique-id';
 import {useKeyboard} from '@react-native-community/hooks'
+import  {Camera,useCameraFormat,useCameraDevices,useCameraDevice,fin} from 'react-native-vision-camera'
+import Canvas,{Image as Canvasımage} from 'react-native-canvas';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import { PermissionsAndroid, Platform } from "react-native";
+import { CameraRoll } from "@react-native-camera-roll/camera-roll";
+import ImageResizer from '@bam.tech/react-native-image-resizer';
+import Orientation from 'react-native-orientation-locker'
 const {width,height} =Dimensions.get("window")
 const height1=Dimensions.get("screen").height
 //const navbar=height1-height-StatusBar.currentHeight
 const as= StatusBar.currentHeight
 let img
 const Chatid = ({route,navigation,setmesnotif}) => {
+  async function hasAndroidPermission() {
+    const getCheckPermissionPromise = async() => {
+      if (Platform.Version >= 33) {
+        return Promise.all([
+          PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES),
+          PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO),
+        ]).then(
+          ([hasReadMediaImagesPermission, hasReadMediaVideoPermission]) =>
+            hasReadMediaImagesPermission && hasReadMediaVideoPermission,
+        );
+      } else {
+        return PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
+      }
+    };
+  
+    const hasPermission = await getCheckPermissionPromise();
+    if (hasPermission) {
+      return true;
+    }
+    const getRequestPermissionPromise = async() => {
+      if (Platform.Version >= 33) {
+        return PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+        ]).then(
+          (statuses) =>
+            statuses[PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES] ===
+              PermissionsAndroid.RESULTS.GRANTED &&
+            statuses[PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO] ===
+              PermissionsAndroid.RESULTS.GRANTED,
+        );
+      } else {
+        return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE).then((status) => status === PermissionsAndroid.RESULTS.GRANTED);
+      }
+    };
+  
+    return await getRequestPermissionPromise();
+  }
+  
+
+
+
   const keyboardh = useKeyboard().keyboardHeight
   const d =new ShortUniqueId({length:10})
   const scrollY = useSharedValue(0)
@@ -64,7 +114,7 @@ const images = [
     uri: "https://images.unsplash.com/photo-1569569970363-df7b6160d111",
   },
 ];
-const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,server,state,socket,setstat,rr,stat,authContext,check,allm,setss}=useAuthorization()
+const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,server,state,socket,setstat,rr,stat,authContext,check,allm,setss,cam,setimg,img}=useAuthorization()
 
   const a = useRoute()
   let other
@@ -76,10 +126,13 @@ const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,ser
   let mpeop =route?.params?.mpeop
   let messa= route?.params?.mess
   let newchat= route?.params?.newchat
+  let re= route?.params?.re
+  let pos= route?.params?.pos
 
 
   console.log(mpeop,41)
  const today = useRef(false)
+
   const scroll = useRef()
   const input = useRef(null)
   const inputT = useRef(null)
@@ -92,15 +145,15 @@ const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,ser
     id:state.userId
   }
   const page =useRef(1)
+  const canvas=useRef(null)
   //const allm =useRef([])
   const[text,settext]=useState(null)
-  const [img, setimg] = useState(null)
+  //const [img, setimg] = useState(null)
   const [inp, setinp] = useState(false)
   const [w, setw] = useState(null)
   const [h, seth] = useState(null)
   const[focus,setfocus]=useState(false)
-  //const[stat,setstat]=useState(false)
-  const[zoom,setzoom]=useState(false)
+  const[camopen,setcamopen]=useState(false)
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [visible, setIsVisible] = useState(false);
   let headers={ Authorization:state.userToken}
@@ -119,22 +172,77 @@ const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,ser
   const initialTouchLocation = useSharedValue({ x: 0, y: 0 })
 
 
+  const resizeImage = (base64Str,pos) => {
+    return new Promise((resolve) => {
+      let a = 0
+    if(pos==="back"){
+a= 90
+    }
+ ImageResizer.createResizedImage(base64Str,960,1280,"JPEG",100,a).then((e)=>{
 
+  resolve(e.uri)
+
+ })
+ 
+      
+    })
+  }
+
+
+
+const fetchImage = async (uri,pos) => {
+     const resized1 = await resizeImage(uri,pos)
+    const imageResponse1 = await fetch(resized1);
+    const imageBlob1 = await imageResponse1.blob();
+    const base64Data1 = await blobToBase64(imageBlob1);
+    //console.log(base64Data1)
+    return new Promise((resolve,reject)=>{
+       resolve(String(base64Data1))
+    })
+  };
+  
+  const blobToBase64 = (blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        resolve(String(reader.result));
+      };
+      reader.readAsDataURL(blob);
+    })
+  }
+ 
 
 useEffect(() => {
   
-  
+  hasAndroidPermission()
   currentconv.current=id
   check.current=newchat
   console.log(check.current)
  //StatusBar.setBackgroundColor("red")
 
-  
+  return ()=>{
+    cam.current=false
+  }
 
   
 }, [])
 
+useEffect(()=>{
+  if(re){
+    
+  fetchImage(re,pos).then((e)=>{
+    route.params.re=null
+    route.params.pos=null
+setTimeout(() => {
+  sendTextMessage(e)
+  
+}, 500);
 
+  })
+  
+  }
+  },[re])
   const animatedStyle12 = useAnimatedStyle(() => {
     
     return {
@@ -368,7 +476,7 @@ async function all(){
  let m = await AsyncStorage.getItem(currentconv.current)
   if(m){
     allm.current= JSON.parse(m)
-    console.log(allm.current,554)
+    //console.log(allm.current,554)
   }
   }
  
@@ -456,22 +564,33 @@ setinp(true)
 
 
 }, [img]) */
-async function sendTextMessage(){
+async function sendTextMessage(media1){
   console.log(currentconv.current,state.userName)
   inputT.current.clear()
   let x = input.current
-  if(x && x !==""){
-    x =x.trim()
+  if(x && x !=="" || media1 ){
+    if(media1){
+
+    }else{
+      x =x.trim()
+
+    }
   let date=Date.now()
   console.log(date)
+
     let newmessage={
       _id:date,
       sender:na.id,
       receiver:otherid,
       conversationid:currentconv.current,
       text:x,
-      createdAt:date
+      createdAt:date,
     }
+    if(media1){
+      newmessage.media=media1
+      console.log(media1)
+    }
+
    
     if(today.current===false){
       console.log(12)
@@ -525,14 +644,7 @@ async function sendTextMessage(){
       }else{
   
         socket.current.emit("send",newmessage)
-        await axios.post(`${prt}/messages`,{
-          _id:date,
-          sender:na.id,
-          receiver:otherid,
-          name:state.userName,
-          conversationid:currentconv.current,
-          text:x,
-        }).then(()=>{
+        await axios.post(`${prt}/messages`,newmessage).then(()=>{
           console.log("gg")
         }).catch((e)=>{
           console.log(e)
@@ -674,12 +786,35 @@ console.log(e)
     
    
   }
+async function choose(){
+  await launchImageLibrary({
+  mediaType:"photo",
+  maxHeight:1280,
+  maxWidth:720,
+  quality:1,
+  includeBase64:true,
+  assetRepresentationMode:"current",
+}).then((e)=>{
+  console.log(e.assets[0].uri)
+  sendTextMessage(`data:image/jpeg;base64,${e.assets[0].base64}`)
+//sendTextMessage(e.assets[0].base64)
+
+})
+
+}
+
+
+
+
+
      return (
     <GestureDetector gesture={gesture}>
 
-    <Animated.View  onLayout={(e)=>{
+    <Animated.View    onLayout={(e)=>{
    
-    }} style={[animatedStyle1,{flexGrow:1,flexShrink:1,backgroundColor:"black",flexDirection:"column"}]}>
+    }} style={[animatedStyle1,{flex:1,backgroundColor:"black",flexDirection:"column"}]}>
+
+
       <View style={{ paddingTop:StatusBar.currentHeight,flexDirection: "row", height: 75+as, backgroundColor: "gold", justifyContent: "space-between", alignItems: "center" ,zIndex:1}}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={{}} >--</Text>
@@ -706,26 +841,26 @@ console.log(e)
         </View>
       </View>
 
-<ScrollView
-
+<Animated.ScrollView
+layout={Layout.easing(Easing.elastic())}
         overScrollMode="always"
           ref={scroll}
           scrollEventThrottle={250}
-          style={[{ paddingBottom:10,zIndex: 1,transform: [{rotate:"180deg"}]}]}
+          style={[{ paddingBottom:10,flexGrow:1,zIndex: 1,transform: [{rotate:"180deg"}]}]}
         >
         {
           messages?.map((c,i)=>{
         
-            return <Mess2 fontscale={fontScale} messages={c} rr={rr} setstat={setstat} allmess={messages} key={c._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={i} pd={st}/>
+            return <Mess fontscale={fontScale} messages={c} rr={rr} setstat={setstat} allmess={messages} key={c._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={i} pd={st}/>
        
           })
         }
-        </ScrollView>
+        </Animated.ScrollView>
         
         
 
        
-<View style={[{overflow:"hidden",flexShrink:1,flexDirection:"row",alignItems:"center",backgroundColor:"blue",padding:5}]} >
+<Animated.View layout={Layout.easing(Easing.elastic())} style={[{flexDirection:"row",alignItems:"center",backgroundColor:"blue",padding:5}]} >
   <TextInput 
   //onKeyPress={foc}
   //onPressIn={foc}
@@ -745,9 +880,39 @@ onPressOut={()=>{
   }}
   multiline={true}
   cursorColor={"blue"}
-  style={{backgroundColor:"red",width:"100%",maxHeight:95,borderRadius:16,padding:3,paddingVertical:7,fontSize:23/fontScale}}/>
+  style={{backgroundColor:"red",width:"100%",borderRadius:16,padding:3,paddingVertical:7,fontSize:23/fontScale}}/>
 <TouchableOpacity style={{height:40,backgroundColor:"blue",position:"absolute",right:10,width:50,borderRadius:10}} onPress={()=>sendTextMessage()}/>
-</View>
+<TouchableOpacity style={{height:40,backgroundColor:"blue",position:"absolute",right:65,width:50,borderRadius:10}} onPress={async()=>{/* await launchImageLibrary({
+  mediaType:"photo",
+  maxHeight:1280,
+  maxWidth:720,
+  quality:1,
+  includeBase64:true,
+  assetRepresentationMode:"current",
+}).then((e)=>{
+
+  //console.log(e.assets[0])
+})
+ */
+inputT.current.blur()
+navigation.navigate("Takephoto")
+Orientation.lockToPortrait()
+cam.current=true
+setcamopen(true)
+//await resizeImage("1")
+
+}
+
+
+}/>
+<TouchableOpacity style={{height:40,backgroundColor:"blue",position:"absolute",right:120,width:50,borderRadius:10}} onPress={async()=>{
+choose()
+}
+
+
+}/>
+
+</Animated.View>
 
     </Animated.View>
 </GestureDetector>

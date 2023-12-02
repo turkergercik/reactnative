@@ -26,7 +26,7 @@ import InCallManager from 'react-native-incall-manager';
 import Resetpassword from "./screens/resetpassword";
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { current } from "@reduxjs/toolkit";
-import Animated ,{ Extrapolation,useAnimatedKeyboard, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming,AnimatedLayout, FadeIn, Layout, SlideInDown, SlideInUp, SlideOutUp, SlideInRight, SlideInLeft } from 'react-native-reanimated'
+import Animated ,{Easing,Extrapolation,useAnimatedKeyboard, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming,AnimatedLayout, FadeIn, Layout, SlideInDown, SlideInUp, SlideOutUp, SlideInRight, SlideInLeft } from 'react-native-reanimated'
 import Pincode from "./screens/pincode";
 import Newpassword from "./screens/newpassword";
 import Allpeople from "./screens/allpeop";
@@ -35,8 +35,9 @@ import ShortUniqueId from 'short-unique-id';
 import RNExitApp from 'react-native-exit-app';
 import { useNetInfo } from "@react-native-community/netinfo";
 import axios from "axios";
-import W from "./screens/w";
+import Take from "./screens/takephoto";
 import { useKeyboard } from "@react-native-community/hooks";
+
 const {pause}=NativeModules
 const {width,height}=Dimensions.get("window")
 const height1=Dimensions.get("screen").height
@@ -50,7 +51,7 @@ console.log(width)
   const Stack = createNativeStackNavigator();
   //const { isLoading,userToken,img } = useSelector((state) => state.counter);
   //const dispatch = useDispatch();
-const {state,authContext,img,socket,server,remoteRTCMessage,seticall,icall,currentconv,setmessages,istoday,stat,setstat,offlinepause,myconv,messages,check,allm,setcalli,calli,setnavbar} = useAuthorization()
+const {state,authContext,img,socket,server,remoteRTCMessage,seticall,icall,currentconv,setmessages,istoday,stat,setstat,offlinepause,myconv,messages,check,allm,setcalli,calli,setnavbar,cam} = useAuthorization()
 const d =new ShortUniqueId({length:10})
 x+=1
 const c =useRef(null)
@@ -139,7 +140,19 @@ console.log(e,45)
  
   BackgroundFetch.start()
 } */
+let xx= true
+
 useEffect(() => {
+  setInterval(() => {
+   /*  if(xx){
+      pause.setP("a")
+      xx=false
+    }else{
+      pause.setP("p")
+      xx=true
+    } */
+  }, 3000);
+ 
  /*  if(call?.type===null){
     call=null
     setcalli(false)
@@ -786,43 +799,62 @@ useEffect(() => {
     lasto.current="PORTRAIT" 
     Orientation.addDeviceOrientationListener((e)=>{
      clearTimeout(x)
-    clearTimeout(y)
+    //clearTimeout(y)
       if(e==="PORTRAIT" && lasto.current!=="PORTRAIT" ){
+        
         opacity.value=1
         setss(true)
+      setTimeout(() => {
+        StatusBar.setBackgroundColor("black")
+        SystemNavigationBar.setNavigationColor("black")
+        
+      }, 10);
+          
   
+        
+        Orientation.lockToPortrait()
+   
+
         lasto.current="PORTRAIT" 
         setnavbar(n)
-      Orientation.lockToPortrait()
+      
       
       }else if(e==="LANDSCAPE-LEFT" && lasto.current!=="LANDSCAPE-LEFT" ){
+if(cam.current===false){
+  
+  opacity.value=1
+  setss(true)
 
-        opacity.value=1
-        setss(true)
- z= setTimeout(() => {
-    
-    StatusBar.setBackgroundColor("transparent")
-    SystemNavigationBar.setNavigationColor("transparent")
-  }, 10);
-          
+setTimeout(() => {
+StatusBar.setBackgroundColor("transparent")
+SystemNavigationBar.setNavigationColor("transparent")
+
+}, 10);
+
     
 
-        lasto.current="LANDSCAPE-LEFT" 
-        setnavbar(0)
-        Orientation.lockToLandscape()
+
+  lasto.current="LANDSCAPE-LEFT" 
+  setnavbar(0)
+  Orientation.lockToLandscape()
+
+
+}
+       
       
       }
-
-      opacity.value=withTiming(0,{duration:750},()=>{
+      opacity.value=withDelay(0,withTiming(0,{duration:750,
+        
+      },()=>{
         //opacity.value=1
-      })
-     y= setTimeout(() => {
+      }))
+     /* y= setTimeout(() => {
       if(lasto.current=="PORTRAIT"){
         StatusBar.setBackgroundColor("black",true)
         SystemNavigationBar.setNavigationColor("black",)
       
       }
-      }, 500);
+      }, 500); 
      x= setTimeout(() => {
         setss(false)
       }, 650);
@@ -1025,17 +1057,19 @@ color.value="white"
     )
   }
   return (
-    <View style={{flex:1,backgroundColor:"black"}}>
-     
-    <GestureHandlerRootView style={{flex:1,backgroundColor:"black"}}>
+   
+    
+    <GestureHandlerRootView onLayout={()=>{
+ 
+    }} style={{flex:1,backgroundColor:"black"}}>
 
-      <NavigationContainer linking={linking} ref={navigationRef} theme={{colors:{background:"black"}}}>
+      <NavigationContainer  linking={linking} ref={navigationRef} theme={{colors:{background:"black"}}}>
      
       
 
       <Stack.Navigator  screenOptions={{headerShown:false,animation:"slide_from_right",animationDuration:100,gestureEnabled:false,contentStyle:{opacity:1,backgroundColor:"transparent"}}} >
       {state.userToken == null ? (
-          <><Stack.Screen name="Login" component={Login} />
+          <><Stack.Screen  name="Login" component={Login} />
           <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="Resetpassword" component={Resetpassword} />
           <Stack.Screen name="Pincode" component={Pincode} />
@@ -1044,11 +1078,11 @@ color.value="white"
         ) : (
           <><Stack.Screen name="Chat" component={Chat} options={{cardStyle:{backgroundColor:"transparent"} }} >
           </Stack.Screen>
-          <Stack.Screen name="Chatid" component={Chatid} options={{cardStyle:{backgroundColor:"red"},presentation:"transparentModal",cardStyleInterpolator:CardStyleInterpolators.forHorizontalIOS}} />
+          <Stack.Screen name="Chatid" component={Chatid} options={{orientation:"all",cardStyle:{backgroundColor:"red"},presentation:"transparentModal",cardStyleInterpolator:CardStyleInterpolators.forHorizontalIOS}} />
           <Stack.Screen name="Photo" component={Photo} options={{animation:"fade",cardStyle:{backgroundColor:"transparent"},presentation:"transparentModal",animationEnabled:false}} />
           <Stack.Screen name="Video" component={Videocall} options={{cardStyle:{backgroundColor:"transparent"},presentation:"transparentModal",animationEnabled:false}}/>
           <Stack.Screen name="Allpeople" component={Allpeople}/>
-          <Stack.Screen name="w" component={W}/>
+          <Stack.Screen name="Takephoto" component={Take} options={{cardStyle:{backgroundColor:"black"},contentStyle:{backgroundColor:"black"},presentation:"transparentModal",cardStyleInterpolator:CardStyleInterpolators.forBottomSheetAndroid,animation:"slide_from_bottom"}}/>
 
           </>
         )}
@@ -1078,6 +1112,6 @@ color.value="white"
       </NavigationContainer>
 
       </GestureHandlerRootView>
-      </View>
+
   );
 }

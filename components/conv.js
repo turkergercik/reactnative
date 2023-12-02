@@ -139,7 +139,7 @@ const close = ()=>{
   const mess= await AsyncStorage.getItem(mpeop1._id)
 
   if(mess){
-   console.log(mess)
+   //console.log(mess)
   r+=1
     //messageRef.current = JSON.parse(mess).slice(0,5)
     /* function groupedDays(messages) {
@@ -204,7 +204,7 @@ if(e.date===new Date(Date.now()).toLocaleDateString("tr-TR",{day:"2-digit",month
   
     
   }else{
-    console.log(mpeop1,7)
+    //console.log(mpeop1,7)
     navigation.navigate("Chatid",{id:mpeop1._id,pp:pp,mpeop:mpeop1,mess:false,newchat:false})
   }
 

@@ -8,7 +8,7 @@ import axios from 'axios';
 import { useAuthorization } from '../Authcontext.js'
 import { useDispatch, useSelector } from "react-redux";
 import { signIn, setmpeop, setpeop  } from "../redux/counter.js"
-import Animated, { Extrapolation, FadeIn, FadeOut, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated'
+import Animated, { Extrapolation, FadeIn, FadeOut, Layout, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated'
 import {Swipeable} from 'react-native-gesture-handler'
 import SystemNavigationBar from 'react-native-system-navigation-bar'
 import Orientation, { ALL_ORIENTATIONS_BUT_UPSIDE_DOWN } from 'react-native-orientation-locker';
@@ -151,7 +151,7 @@ console.log(res.data)
   ];
   return (
 
-    <View style={[styles.body]}>
+    <Animated.View layout={Layout.duration(0)}  style={[styles.body]}>
 
 {/* <View style={{position:"absolute",width:"100%",height:"100%",backgroundColor:"red",zIndex:1}} >
       <Photo img={images[0].uri}></Photo>
@@ -205,7 +205,7 @@ keyExtractor={item => item._id}
 >
 
 </FlatList> */}
-<View style={{flex:1}}> 
+<View style={{}}> 
 <ScrollView
 
 scrollEnabled={true}
@@ -243,7 +243,7 @@ style={{justifyContent:"center",alignItems:"center",position:"absolute",right:10
 <TextInput style={{alignSelf:"flex-end",height:20,width:"100%",color:"blue",backgroundColor:"green"}}>
 
 </TextInput></View> */}
-    </View>
+    </Animated.View>
   )
 }
 
