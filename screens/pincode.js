@@ -10,7 +10,8 @@ import { signIn, setmpeop, setpeop,signOut  } from "../redux/counter";
 import messaging from '@react-native-firebase/messaging';
 import notifee, { AndroidColor, AndroidImportance,AndroidStyle, AndroidVisibility,EventType } from '@notifee/react-native';
 import RNCallKeep from 'react-native-callkeep';
-
+import Animated,{FadeInDown,FadeOut} from 'react-native-reanimated';
+import { storage } from '../Authcontext';
 let darktext="#F0EFE9"
 let bgfordarkmode="dark:bg-[#1a1a1a]"
 let whitefordark="dark:text-[#F0EFE9]"
@@ -42,7 +43,8 @@ export default function Pincode({route,navigation}) {
     if(code.current.length===6){
       console.log(prt)
       Keyboard.dismiss()
-      let email= await AsyncStorage.getItem("email")
+      //let email= await AsyncStorage.getItem("email")
+      let email= storage.getString("email")
       await axios.post(`${prt}/changepassword`,{
           email:email,
           password:code.current,
@@ -76,15 +78,7 @@ export default function Pincode({route,navigation}) {
 
    }
 
-  useEffect(() => {
-    console.log(x)
-    setTimeout(() => {
-        if(x){
-            navigation.navigate("Home")
-
-        }
-    }, 2000);
-  }, [x])
+  
   const one = useRef(null)
    const two = useRef(null)
    const three = useRef(null)
@@ -94,19 +88,28 @@ export default function Pincode({route,navigation}) {
    const arr = [one,two,three,four,five,six]
    const code=useRef("")
    const [emailc, setemailc] = useState(true)
+   const [T, setT] = useState(null)
     const validate = (text,id) => {
-        console.log()
       if(text){
-       arr[id].current.setNativeProps({style:{borderColor:"green"}})
-       if(code.current.length===0){
-        code.current=code.current+text
-      }else{
-        code.current=code.current.slice(0, id)+text+code.current.slice(id)
-
-      }
-        
+        if(text==="check"){
+          console.log(id)
+          arr[id-1]?.current.focus()
+          return
+        }else{
+          console.log("1")
+          arr[id].current.setNativeProps({style:{borderColor:"green"}})
+          if(code.current.length===0){
+           code.current=code.current+text
+         }else{
+           code.current=code.current.slice(0, id)+text+code.current.slice(id)
+   
+         }
+           
+        }
+       
        arr[id+1]?.current.focus()
       }else{
+        console.log("2  ")
         arr[id].current.setNativeProps({style:{borderColor:"red"}})
         if(code.current.length===1){
           code.current=code.current.slice(id, id)
@@ -116,9 +119,12 @@ export default function Pincode({route,navigation}) {
         }
         arr[id-1]?.current.focus()
       }
-      console.log(code.current)
+      setT(code.current)
       }
-    
+  useEffect(()=>{
+console.log(code.current.length)
+
+  },[code.current])
    
   /*  const [emailc, setemailc] = useState(null)
    const [password, setpassword] = useState(null)
@@ -130,112 +136,136 @@ export default function Pincode({route,navigation}) {
       <KeyboardAvoidingView  style={style.bodysmall}>
    
         <Text  style={{alignSelf:"flex-start",marginLeft:5,marginBottom:5,color:darktext}}>Şifre</Text>
-        <View style={{flex:1,flexDirection:"row"}}>
-        <TextInput maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"blue"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
+        <View style={{flexDirection:"row",paddingBottom:10}}>
+        <TextInput onKeyPress={({ nativeEvent }) => {
+    nativeEvent.key === 'Backspace' ? validate("check",0) :null 
+  }} maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"white"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
         {
             //setemailc(null)
     }}   style={{
-      color:"red",
+      color:"white",
       paddingHorizontal:15,
        fontSize:30,
-        backgroundColor:"white",
-        borderWidth:3,
+       height:50,
+       width:50,
+       backgroundColor:"#292929",
+        borderWidth:2,
         borderColor:"black",
         borderRadius:15,
         paddingVertical:2,
-        marginRight:1
+        marginRight:5
     
-    }} ref={one} onFocus={()=>{
+    }} ref={one} onFocus={(e)=>{
       
  }} onChangeText={(e)=>{
 validate(e,0)
 
  }}/>
- <TextInput maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"blue"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
+ <TextInput onKeyPress={({ nativeEvent }) => {
+    nativeEvent.key === 'Backspace' ? validate("check",1) :null 
+  }} maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"white"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
         {
             //setemailc(null)
     }}   style={{
-      color:"red",
+      color:"white",
       paddingHorizontal:15,
        fontSize:30,
-        backgroundColor:"white",
-        borderWidth:3,
+       backgroundColor:"#292929",
+        borderWidth:2,
+        height:50,
+        width:50,
         borderColor:"black",
         borderRadius:15,
         paddingVertical:2,
-        marginRight:1
+        marginRight:5
     }} ref={two} onFocus={()=>{
       
  }} onChangeText={(e)=>{
 validate(e,1)
 
  }}/>
- <TextInput maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"blue"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
+ <TextInput onKeyPress={({ nativeEvent }) => {
+    nativeEvent.key === 'Backspace' ? validate("check",2) :null 
+  }} maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"white"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
         {
             //setemailc(null)
     }}   style={{
-      color:"red",
+      color:"white",
       paddingHorizontal:15,
        fontSize:30,
-        backgroundColor:"white",
-        borderWidth:3,
+       backgroundColor:"#292929",
+        borderWidth:2,
+        height:50,
+        width:50,
         borderColor:"black",
         borderRadius:15,
         paddingVertical:2,
-        marginRight:1
+        marginRight:5
     }} ref={three} onFocus={()=>{
       
  }} onChangeText={(e)=>{
 validate(e,2)
 
  }}/>
- <TextInput maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"blue"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
+ <TextInput onKeyPress={({ nativeEvent }) => {
+    nativeEvent.key === 'Backspace' ? validate("check",3) :null 
+  }} maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"white"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
         {
             //setemailc(null)
     }}   style={{
-      color:"red",
+      color:"white",
       paddingHorizontal:15,
        fontSize:30,
-        backgroundColor:"white",
-        borderWidth:3,
+       height:50,
+       width:50,
+       backgroundColor:"#292929",
+        borderWidth:2,
         borderColor:"black",
         borderRadius:15,
         paddingVertical:2,
-        marginRight:1
+        marginRight:5
     }} ref={four} onFocus={()=>{
       
  }} onChangeText={(e)=>{
 validate(e,3)
 
  }}/>
- <TextInput maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"blue"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
+ <TextInput onKeyPress={({ nativeEvent }) => {
+    nativeEvent.key === 'Backspace' ? validate("check",4) :null 
+  }} maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"white"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
         {
             //setemailc(null)
     }}   style={{
-      color:"red",
+      color:"white",
       paddingHorizontal:15,
        fontSize:30,
-        backgroundColor:"white",
-        borderWidth:3,
+       height:50,
+       width:50,
+       backgroundColor:"#292929",
+        borderWidth:2,
         borderColor:"black",
         borderRadius:15,
         paddingVertical:2,
-    marginRight:1
+    marginRight:5
     }} ref={five} onFocus={()=>{
       
  }} onChangeText={(e)=>{
 validate(e,4)
 
  }}/>
- <TextInput maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"blue"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
+ <TextInput onKeyPress={({ nativeEvent }) => {
+    nativeEvent.key === 'Backspace' ? validate("check",5) :null 
+  }} maxLength={1} textAlign="center" keyboardType="number-pad" cursorColor={"white"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
         {
             //setemailc(null)
     }}   style={{
-      color:"red",
+      color:"white",
       paddingHorizontal:15,
        fontSize:30,
-        backgroundColor:"white",
-        borderWidth:3,
+       height:50,
+       width:50,
+       backgroundColor:"#292929",
+        borderWidth:2,
         borderColor:"black",
         borderRadius:15,
         paddingVertical:2,
@@ -249,10 +279,10 @@ validate(e,5)
         
         </View>
         
-
-      <TouchableOpacity onPress={()=>reset()} disabled={emailc ? false:true} style={{height:40,backgroundColor:"blue",borderRadius:15,paddingHorizontal:15,justifyContent:"center",marginBottom:10,marginTop:10,paddingBottom:1,alignSelf:"stretch", }}>
+{code.current.length===6 ? <Animated.View entering={FadeInDown} style={{backgroundColor:"black",height:50,alignSelf:"stretch",borderRadius:15,justifyContent:"center",alignItems:"center"}}><TouchableOpacity onPress={()=>reset()} disabled={emailc ? false:true} style={{height:50,borderRadius:15,justifyContent:"center",width:"100%"}}>
        <Text style={{color:darktext,textAlign:"center"}} >Onayla</Text>
-      </TouchableOpacity>
+      </TouchableOpacity></Animated.View> :null}
+      
 {/* <Button title='sdds'onPress={()=>{navigation.navigate("Home")}} >
 
 </Button> */}
@@ -271,24 +301,21 @@ validate(e,5)
 
 const style= StyleSheet.create({
     body:{
-    position:"absolute",
-    top:Dimensions.get("window").height/4,
-  bottom:0,
-  top:0,
-    width:"100%",
+    flex:1,
+    backgroundColor:"black",
 justifyContent:"center",
     alignItems: 'center',
   
     },bodysmall:{
-       
-       
-       height:"16%",
+
+      flexDirection:"column",
        alignItems:"center",
-       justifyContent:"flex-end",
-        backgroundColor:bg,
+       justifyContent:"center",
+        backgroundColor:"#292929",
         paddingHorizontal:10,
         borderRadius:20,
-        paddingTop:4
+       paddingTop:5,
+       paddingBottom:10
     },
     
     })

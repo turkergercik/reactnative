@@ -4,12 +4,15 @@ import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
+import android.graphics.Color;
 import android.os.Bundle;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactActivityDelegate;
@@ -18,18 +21,28 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.view.WindowManager;
 import android.view.Window;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
-import android.os.Build;  
-import android.provider.Settings; 
+import android.os.Build;
+import android.provider.Settings;
 import android.net.Uri;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.Toast;
+
+import org.devio.rn.splashscreen.SplashScreen;
+
+import io.invertase.notifee.NotifeeApiModule;
 
 public class MainActivity extends ReactActivity {
 
@@ -40,20 +53,16 @@ public class MainActivity extends ReactActivity {
   public Handler handler = new Handler();
     public Runnable r=null;
 
+   @RequiresApi(api = Build.VERSION_CODES.P)
    @Override
   protected void onCreate(Bundle savedInstanceState) {
+       //SplashScreen.show(this);  // here
     super.onCreate(null);
-     Window w = getWindow();
-getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON|
- WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD|
- WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED|
- WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-           if (!Settings.canDrawOverlays(this)) {
-              Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:" + getPackageName()));
-              startActivityForResult(intent, 0);
-          }
-       }
+       Window w =  getWindow();
+       w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON|
+               WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD|
+               WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED|
+               WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
            Intent intent = new Intent();
            String packageName = getPackageName();
@@ -68,30 +77,19 @@ getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON|
        filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
        registerReceiver(new NetworkChangeReceiver(), filter);*/
        stars();
-       boolean c= isNotificationChannelEnabled(getApplicationContext(),"3");
-       if(c){
-           Intent intent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
-           intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
-           intent.putExtra(Settings.EXTRA_CHANNEL_ID, "3");
-           startActivity(intent);
+       getWindow().getDecorView().setBackgroundColor(Color.BLACK);
+       String manufacturer = "xiaomi";
+       if (manufacturer.equalsIgnoreCase(android.os.Build.MANUFACTURER)) {
+           //this will open auto start screen where user can enable permission for your app
+           Intent intent1 = new Intent();
+           intent1.setComponent(new ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"));
+           startActivity(intent1);
        }
 
 
+   }
 
-  }
 
-    public boolean isNotificationChannelEnabled(Context context, @Nullable String channelId){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if(!TextUtils.isEmpty(channelId)) {
-                NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                NotificationChannel channel = manager.getNotificationChannel(channelId);
-                return channel.getImportance() != NotificationManager.IMPORTANCE_NONE;
-            }
-            return false;
-        } else {
-            return NotificationManagerCompat.from(context).areNotificationsEnabled();
-        }
-    }
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -116,7 +114,7 @@ getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON|
     }
   @Override
   protected String getMainComponentName() {
-    return "v1";
+      return NotifeeApiModule.getMainComponent("v1");
   }
 
   /**

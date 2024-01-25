@@ -9,6 +9,11 @@ const initialLoginState = {
     peop:[]
   };
 export const AuthContext = createContext();
+import { MMKV } from 'react-native-mmkv'
+export const storage = new MMKV({
+  id: `storage`,
+  encryptionKey: 'v1'
+})
 export const useAuthorization = () => {
     const context = useContext(AuthContext);
     if (!context) {
@@ -16,7 +21,8 @@ export const useAuthorization = () => {
       }
       return context;
   };
-export function Auth({children,setcalli,socketi,calli}){
+export function Auth({children,socketi}){
+
     const {width,height}=Dimensions.get("window")
     const height1=Dimensions.get("screen").height
     const n=height1-height-StatusBar.currentHeight
@@ -25,9 +31,10 @@ export function Auth({children,setcalli,socketi,calli}){
     const messageRef =useRef()
     const rr =useRef(false)
     const offlinepause = useRef({audio:true,video:true}) 
-    //let server ="http://192.168.1.108:3001"
-    const server = "https://smartifier.onrender.com"
+    let server ="http://192.168.1.102:3001"
+    //const server = "https://smartifier.onrender.com"
     const socket = useRef(null)
+    const socketbackup = useRef(null)
     const rtcm =useRef()
     const userid1 =useRef()
     const remoteRTCMessage = useRef({
@@ -36,15 +43,21 @@ export function Auth({children,setcalli,socketi,calli}){
     });
     const check = useRef(null)
     const [img, setimg] = useState(null);
+    const [onlines, setonlines] = useState([]);
+    const [inchat, setinchat] = useState([]);
+    const [typing, settyping] = useState([]);
     const [navbar, setnavbar] = useState(n);
+    const [soc, setsoc] = useState(null);
     const cam = useRef(false)
     const[camopen,setcamopen]=useState(false)
+    const[calli,setcalli]=useState(false)
     const [auth, setauth] = useState(null)
-    const [ss, setss] = useState(false)
+    const [ss, setss] = useState(true)
     const [rot, setrot] = useState(false)
     const [userToken, setuserToken] = useState()
     const istoday = useRef({})
     const callst = useRef(true)
+    const currentother = useRef(null)
     const myconv = useRef([])
     const [userId, setuserId] = useState()
     const [icall, seticall] = useState(false)
@@ -58,6 +71,8 @@ export function Auth({children,setcalli,socketi,calli}){
     const[mpeop,setmpeop]=useState([])
     const[peop,setpeop]=useState([])
     const currentconv=useRef(null)
+    const menuopens = useRef(false)
+    const [somemessages, setsomemessages] = useState([])
     const [state, dispatch] = useReducer(
         (prevState, action) => {
           switch (action.type) {
@@ -131,7 +146,7 @@ export function Auth({children,setcalli,socketi,calli}){
         []
       );
 return(
-<AuthContext.Provider value={{cam,camopen,setcamopen,ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
+<AuthContext.Provider value={{currentother,typing,settyping,inchat,setinchat,onlines,setonlines,menuopens,somemessages,setsomemessages,socketbackup,cam,setsoc,soc,camopen,setcamopen,ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
 {children}
 </AuthContext.Provider>
 )

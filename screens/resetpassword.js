@@ -1,4 +1,4 @@
-import { View, Alert,Linking,Text,StyleSheet,Button,Dimensions,Image,Keyboard, TextInput, SafeAreaView, ScrollView, KeyboardAvoidingView, StatusBar, TouchableOpacity } from 'react-native'
+import { View, Alert,Linking,Text,StyleSheet,Button,Dimensions,Image,Keyboard, TextInput as Ti, SafeAreaView, ScrollView, KeyboardAvoidingView, StatusBar, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useState,useEffect } from 'react'
 import axios from 'axios'
@@ -10,7 +10,9 @@ import { signIn, setmpeop, setpeop,signOut  } from "../redux/counter";
 import messaging from '@react-native-firebase/messaging';
 import notifee, { AndroidColor, AndroidImportance,AndroidStyle, AndroidVisibility,EventType } from '@notifee/react-native';
 import RNCallKeep from 'react-native-callkeep';
-
+import { TextInput } from 'react-native-paper';
+import Animated, { FadeIn, FadeInDown, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
+import { storage } from '../Authcontext';
 let darktext="#F0EFE9"
 let bgfordarkmode="dark:bg-[#1a1a1a]"
 let whitefordark="dark:text-[#F0EFE9]"
@@ -44,9 +46,10 @@ export default function Resetpassword({route,navigation}) {
     await axios.post(`${prt}/resetpassword`,{
         email:email,
     }).then(async(response) => {
-      console.log(response.data)
+      console.log(response.data,45)
       if(response.data.data==="ok"){
-        await AsyncStorage.setItem("email",email)
+        //await AsyncStorage.setItem("email",email)
+        storage.set("email",email)
         navigation.navigate("Pincode")
        // Alert.alert("Emailinize gelen kodu kullanarak ")
         
@@ -103,19 +106,12 @@ export default function Resetpassword({route,navigation}) {
     
       <KeyboardAvoidingView  style={style.bodysmall}>
    
-        <Text  style={{alignSelf:"flex-start",marginLeft:5,marginBottom:5,color:darktext}}>Kayıtlı Emailiniz</Text>
-        <TextInput cursorColor={"blue"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
+        <TextInput  mode="outlined" textColor='white' activeOutlineColor='white' label={"Kayıtlı Emailiniz"} contentStyle={{fontSize:18,height:50}} outlineStyle={{borderRadius:15,borderWidth:2,borderColor:emailc===true ? "green":emailc===false ?"red":null}} cursorColor={"white"}  autoCapitalize='none' onBlur={()=>
         {
             //setemailc(null)
     }}  textContentType='emailAddress' style={{
         width:"100%",
-        height:40,
-        marginHorizontal:20,
-        paddingHorizontal:10,
-        backgroundColor:darktext,
-        borderWidth:3,
-        borderColor:emailc===true ? "green":emailc===false ?"red":null,
-        borderRadius:15,
+        backgroundColor:"#292929",
         marginBottom:4,
 
     
@@ -124,15 +120,19 @@ export default function Resetpassword({route,navigation}) {
       validate(email)}} onChangeText={(e)=>{validate(e)}}/>
         
 
-        
-<Text style={{color:darktext}} onPress={()=>navigation.navigate("Login")
-}>Giriş yap</Text>
-      <TouchableOpacity onPress={()=>login()} disabled={emailc ? false:true} style={{height:40,backgroundColor:"blue",borderRadius:15,paddingHorizontal:15,justifyContent:"center",marginBottom:10,marginTop:10,paddingBottom:1,alignSelf:"stretch", }}>
-       <Text style={{color:darktext,textAlign:"center"}} >Şifreni resetle</Text>
+  {emailc ?<Animated.View entering={FadeInDown} exiting={FadeOut} style={{marginTop:5,marginBottom:10,backgroundColor:"black",height:50,width:"100%",borderRadius:15,justifyContent:"center",alignItems:"center"}}><TouchableOpacity onPress={()=>login()} disabled={emailc ? false:true} style={{height:"100%",width:"100%",borderRadius:15,justifyContent:"center",alignItems:"center"}}>
+       <Text style={{color:"white",fontSize:18,fontWeight:"300"}} >Şifreni resetle</Text>
       </TouchableOpacity>
-{/* <Button title='sdds'onPress={()=>{navigation.navigate("Home")}} >
+      </Animated.View> :
+      <TouchableOpacity style={{marginTop:5,marginBottom:10,backgroundColor:"#111111",height:50,width:"100%",borderRadius:15,justifyContent:"center",alignItems:"center"}} onPress={()=>navigation.navigate("Login")
+}>
+<Text style={{color:"white",fontSize:18,fontWeight:"300"}}>
+Vazgeç
+</Text>
+</TouchableOpacity> }      
 
-</Button> */}
+      
+
 
 
     </KeyboardAvoidingView>
@@ -148,11 +148,7 @@ export default function Resetpassword({route,navigation}) {
 
 const style= StyleSheet.create({
     body:{
-    position:"absolute",
-    top:Dimensions.get("window").height/4,
-  bottom:0,
-  top:0,
-    width:"100%",
+    flex:1,
 justifyContent:"center",
     alignItems: 'center',
   
@@ -162,10 +158,11 @@ justifyContent:"center",
        
        alignItems:"center",
        justifyContent:"flex-end",
-        backgroundColor:bg,
+        backgroundColor:"#292929",
         paddingHorizontal:10,
         borderRadius:20,
         paddingTop:4
+
     },
     
     })

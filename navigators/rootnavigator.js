@@ -12,7 +12,9 @@ export async function navigate(name, params) {
 
   let a 
   let x=0
- 
+   function as(){
+
+ }
      a = setInterval(()=>{
     
     if (navigationRef.isReady()) {

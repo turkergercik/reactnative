@@ -6,8 +6,8 @@
   <uses-permission android:name="android.permission.CAMERA"/>
   <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-  <uses-permission android:name="android.permission.MICROPHONE" />
-  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+  <uses-permission android:name="android.permission.MICROPHONE"/>
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
   <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
   <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
@@ -18,43 +18,35 @@
   <uses-permission android:name="android.permission.CALL_PHONE"/>
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-  <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-      android:maxSdkVersion="32" />
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+  <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-  <application android:name=".MainApplication"  android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="false" android:theme="@style/AppTheme">
-    <receiver android:name=".boot"
-        android:exported="true"
-        android:enabled="true">
+  <uses-permission android:name="android.permission.VIBRATE"/>
+  <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:allowBackup="false" android:theme="@style/AppTheme">
+    <receiver android:name=".boot" android:exported="true" android:enabled="true">
       <intent-filter android:priority="999">
-        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.DEFAULT"/>
         <action android:name="android.intent.action.BOOT_COMPLETED"/>
       </intent-filter>
     </receiver>
-    <receiver android:name=".network"
-        android:enabled="true"
-        android:exported="true"
-        >
+    <receiver android:name=".network" android:enabled="true" android:exported="true">
       <intent-filter>
-        <action android:name="android.net.conn.CONNECTIVITY_CHANGE"  />
+        <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
       </intent-filter>
     </receiver>
-
-    <service android:name="com.v1.headless" />
+    <service android:name="com.v1.headless"/>
     <service android:name="com.v1.NetworkChangeReceiver" android:enabled="true" android:exported="true"/>
-
-
     <service android:name="io.wazo.callkeep.VoiceConnectionService" android:label="Wazo" android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE" android:foregroundServiceType="camera|microphone" android:exported="true">
       <intent-filter>
         <action android:name="android.telecom.ConnectionService"/>
       </intent-filter>
     </service>
-    <activity android:name=".MainActivity" android:screenOrientation="sensor" android:label="@string/app_name" android:configChanges="keyboard|keyboardHidden|layoutDirection|orientation|screenSize|screenLayout|uiMode" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:exported="true">
+    <activity android:name=".MainActivity" android:label="@string/app_name" android:configChanges="keyboard|keyboardHidden|layoutDirection|orientation|screenSize|screenLayout|uiMode" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:exported="true">
       <intent-filter>
-        <action android:name="android.intent.action.MAIN"/>
-        <category android:name="android.intent.category.LAUNCHER"/>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
       <intent-filter>
         <action android:name="android.intent.action.VIEW"/>
@@ -63,5 +55,13 @@
         <data android:scheme="mychat"/>
       </intent-filter>
     </activity>
+    <activity android:name="com.v1.CustomActivity" android:showWhenLocked="true" android:turnScreenOn="true" android:launchMode="singleTask" android:showOnLockScreen="true"/>
+    <activity android:name="com.v1.CustomActivity2" android:showWhenLocked="true" android:turnScreenOn="true" android:launchMode="singleTask" android:showOnLockScreen="true"/>
   </application>
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.VIEW"/>
+      <data android:mimeType="*/*"/>
+    </intent>
+  </queries>
 </manifest>

@@ -1,4 +1,4 @@
-import { View,Keyboard, Text,TextInput,TouchableOpacity,StyleSheet,Button,SafeAreaView,ScrollView,StatusBar,KeyboardAvoidingView,Dimensions } from 'react-native'
+import { View,Keyboard, Text,TextInput as Ti,TouchableOpacity,StyleSheet,Button,SafeAreaView,ScrollView,StatusBar,KeyboardAvoidingView,Dimensions } from 'react-native'
 import React,{useEffect,useState,useCallback, useRef,useImperativeHandle } from 'react'
 import axios from 'axios'
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -12,8 +12,10 @@ import Animated, {
   withSpring,
   withRepeat,
   useAnimatedGestureHandler,
-  withTiming,runOnJS
+  withTiming,runOnJS, SlideInDown, SlideOutDown,FadeInDown,FadeOut
 } from 'react-native-reanimated';
+import { TextInput } from 'react-native-paper';
+import { useAuthorization } from '../Authcontext';
 let darktext="#F0EFE9"
 let bgfordarkmode="dark:bg-[#1a1a1a]"
 let whitefordark="dark:text-[#F0EFE9]"
@@ -38,7 +40,8 @@ export default function Register({route,navigation}) {
   const translateY = useSharedValue(0);
   const context = useSharedValue({ y: 0 });
   const MAX_TRANSLATE_Y = -SCREEN_HEIGHT + 50;
-    let prt="http://192.168.1.104:3001"
+  const{server}=useAuthorization()
+    let prt=server
    const login=async(e)=>{
     
     await axios.post(`${prt}/register`,{
@@ -100,150 +103,50 @@ export default function Register({route,navigation}) {
    const [passwordc, setpasswordc] = useState(null)
    
 
-   /* function otherWorklet() {
-    'worklet';
-      runOnJS( navigation.navigate("Login"))
-
-  } */
-
-  const onPressFn = () => {
-    // function from other thread (different of reanimated thread)
-    navigation.goBack()
-  };
-   
-
-       const scrollTo = useCallback((destination) => {
-        'worklet';
-     
-  
-        translateY.value = withSpring(destination, { damping: 50 });
-      }, []);
-   
-   
-
-       const gesture = Gesture.Pan()
-         .onStart(() => {
-          
-           context.value = { y: translateY.value };
-         })
-         .onUpdate((event) => {
-        
-           translateY.value = event.translationY + context.value.y;
-           translateY.value = Math.max(translateY.value, MAX_TRANSLATE_Y);
-         })
-         .onEnd((event) => {
-         console.log(event.velocityY,"123")
-           if (translateY.value >= SCREEN_HEIGHT / 1.5||event.velocityY>2500) {
-            console.log(translateY.value)
-          console.log(-SCREEN_HEIGHT / 3)
-            console.log("1")
-            scrollTo(SCREEN_HEIGHT)
-            runOnJS(onPressFn)();
-           }else if(translateY.value >= SCREEN_HEIGHT / 3) {
-            console.log(translateY.value)
-          console.log(-SCREEN_HEIGHT / 3)
-            console.log("1")
-            scrollTo(SCREEN_HEIGHT / 4)
-          
-           }  else if (translateY.value < SCREEN_HEIGHT / 1.5) {
-            scrollTo(StatusBar.currentHeight*2)
-           }
-         });
-   
-       const rBottomSheetStyle = useAnimatedStyle(() => {
-         /* const borderRadius = interpolate(
-           translateY.value,
-           [MAX_TRANSLATE_Y + 50, MAX_TRANSLATE_Y],
-           [25, 5],
-           Extrapolate.CLAMP
-         ); */
-   
-         return {
-           
-           transform: [{ translateY: translateY.value }],
-         };
-       });
-
-useEffect(()=>{
-translateY.value=withTiming(SCREEN_HEIGHT/4)
-const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-  //translateY.value=withTiming(SCREEN_HEIGHT/100)
- // setkeyboard(true);
-});
-const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-  translateY.value=withTiming(SCREEN_HEIGHT/4)
-  //setkeyboard(false);
-});
-
-return () => {
-  showSubscription.remove();
-  hideSubscription.remove();
-};
-},[])
 
   return (
-<KeyboardAvoidingView behavior="padding"  style={style.body}>
+<KeyboardAvoidingView   style={style.body}>
       <View style={style.bodysmall}>
-
-    
-      <Text  style={{alignSelf:"flex-start",marginLeft:5,marginBottom:5,color:darktext}}>Name</Text>
-        <TextInput onFocus={()=>setname("")} inputMode="text" autoCapitalize='none' keyboardType="default" onBlur={()=>
+        <TextInput mode="outlined" textColor='white' activeOutlineColor='white' label={"Name"} contentStyle={{fontSize:18,height:50}} outlineStyle={{borderWidth:2,borderRadius:15,borderColor:name===undefined ? "black":name==="" ?"red":"green",}} onFocus={()=>setname("")} cursorColor='white' inputMode="text" autoCapitalize='none' keyboardType="default" onBlur={()=>
         {
             //setemailc(null)
     }}  textContentType='emailAddress' style={{
         width:"100%",
-        height:40,
-        marginHorizontal:20,
-        paddingHorizontal:10,
-        backgroundColor:darktext,
-        borderWidth:3,
-        borderColor:name===undefined ? "black":name==="" ?"red":"green",
+        backgroundColor:"#292929",
         borderRadius:15,
         marginBottom:4,
-
     
     }} value={name} onChangeText={(e)=>setname(e)}/>
-        <Text  style={{alignSelf:"flex-start",marginLeft:5,marginBottom:5,color:darktext}}>Email</Text>
-        <TextInput autoCapitalize="none" keyboardType="default" onBlur={()=>
+
+        <TextInput mode="outlined" textColor='white' activeOutlineColor='white' label={"Email"} contentStyle={{fontSize:18,height:50}} outlineStyle={{borderRadius:15,borderWidth:2,borderColor:emailc===true ? "green":emailc===false ?"red":null}} autoCapitalize="none" keyboardType="default" onBlur={()=>
         {
             //setemailc(null)
     }}  style={{
         width:"100%",
-        height:40,
-        marginHorizontal:20,
-        paddingHorizontal:10,
-        backgroundColor:darktext,
-        borderWidth:3,
-        borderColor:emailc===true ? "green":emailc===false ?"red":null,
-        borderRadius:15,
+        backgroundColor:"#292929",
         marginBottom:4,
 
     
     }} value={email} onFocus={()=>validate(email)} onChangeText={(e)=>{validate(e)}}/>
-        <Text style={{alignSelf:"flex-start",marginLeft:5,marginBottom:5,color:darktext}}>Password</Text>
-        <TextInput textContentType='password' autoCapitalize='none' style={{
+        <TextInput  mode="outlined" textColor='white' activeOutlineColor='white' label={"Password"} contentStyle={{fontSize:18,height:50}} outlineStyle={{borderRadius:15,borderWidth:2,borderColor:passwordc===true ? "green":passwordc===false ?"red":null}} textContentType='password' autoCapitalize='none' style={{
         width:"100%",
-        height:40,
-        marginHorizontal:20,
-        paddingHorizontal:10,
-        backgroundColor:darktext,
-        borderWidth:3,
-        borderColor:passwordc===true ? "green":passwordc===false ?"red":null,
-        borderRadius:15,
+        backgroundColor:"#292929",
         marginBottom:4,
-
     
     }} value={password} onFocus={()=>validateP(password)} onChangeText={(e)=>{validateP(e)}} secureTextEntry/>
 
-        
-<Text style={{color:darktext}} onPress={()=>navigation.goBack()
-}>Zaten Üyeyim</Text>
-      <TouchableOpacity onPress={()=>login()} disabled={emailc&&passwordc&&name!=="" ? false:true} style={{height:40,backgroundColor:"blue",borderRadius:15,paddingHorizontal:15,justifyContent:"center",marginBottom:10,marginTop:10,paddingBottom:1,alignSelf:"stretch", }}>
-       <Text style={{color:darktext,textAlign:"center"}} >Kayıt Ol</Text>
-      </TouchableOpacity>
-{/* <Button title='sdds'onPress={()=>{navigation.navigate("Home")}} >
+  {emailc&&passwordc&&name!=="" ?<Animated.View entering={FadeInDown} exiting={FadeOut}  style={{color:darktext,height:50,backgroundColor:"#111111",width:"100%",borderRadius:15,marginVertical:10,justifyContent:"center",alignItems:"center"}} onPress={()=>navigation.goBack()
+}><TouchableOpacity onPress={()=>login()} disabled={emailc&&passwordc&&name!=="" ? false:true} style={{height:"100%",borderRadius:15,justifyContent:"center",width:"100%",alignItems:"center" }}>
+       <Text style={{color:"white",fontSize:18,fontWeight:"300"}} >Kayıt Ol</Text>
+      </TouchableOpacity></Animated.View>:<TouchableOpacity style={{color:darktext,height:50,backgroundColor:"#111111",width:"100%",borderRadius:15,marginVertical:10,justifyContent:"center",alignItems:"center"}} onPress={()=>navigation.goBack()
+}>
+<Text style={{color:"white",fontSize:18,fontWeight:"300"}}>
+Zaten Üyeyim
+</Text>
+</TouchableOpacity> 
 
-</Button> */}
+}      
+
 
 
     </View>
@@ -259,9 +162,7 @@ return () => {
 const style= StyleSheet.create({
     body:{
       flex:1,
-      borderTopRightRadius:15,
-      borderTopLeftRadius:15,
-      backgroundColor:"#C3E4ED",
+      backgroundColor:"black",
       alignItems: 'center', 
       justifyContent: "center",
 
@@ -270,8 +171,7 @@ const style= StyleSheet.create({
         width:"80%",
        
        alignItems:"center",
-       justifyContent:"flex-end",
-        backgroundColor:bg,
+        backgroundColor:"#292929",
         paddingHorizontal:10,
         borderRadius:20,
         paddingTop:4

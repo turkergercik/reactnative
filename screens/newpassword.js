@@ -1,4 +1,4 @@
-import { View, Alert,Linking,Text,StyleSheet,Button,Dimensions,Image,Keyboard, TextInput, SafeAreaView, ScrollView, KeyboardAvoidingView, StatusBar, TouchableOpacity } from 'react-native'
+import { View, Alert,Linking,Text,StyleSheet,Button,Dimensions,Image,Keyboard, TextInput as Ti, SafeAreaView, ScrollView, KeyboardAvoidingView, StatusBar, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useState,useEffect } from 'react'
 import axios from 'axios'
@@ -10,7 +10,9 @@ import { signIn, setmpeop, setpeop,signOut  } from "../redux/counter";
 import messaging from '@react-native-firebase/messaging';
 import notifee, { AndroidColor, AndroidImportance,AndroidStyle, AndroidVisibility,EventType } from '@notifee/react-native';
 import RNCallKeep from 'react-native-callkeep';
-
+import { TextInput } from 'react-native-paper';
+import Animated,{FadeInDown} from 'react-native-reanimated';
+import { storage } from '../Authcontext';
 let darktext="#F0EFE9"
 let bgfordarkmode="dark:bg-[#1a1a1a]"
 let whitefordark="dark:text-[#F0EFE9]"
@@ -42,7 +44,8 @@ export default function Newpassword({route,navigation}) {
     if(password===password2){
         console.log(prt)
         Keyboard.dismiss()
-        let email= await AsyncStorage.getItem("email")
+        //let email= await AsyncStorage.getItem("email")
+        let email= storage.getString("email")
         await axios.post(`${prt}/savenewpassword`,{
             email:email,
             password:password
@@ -132,20 +135,14 @@ export default function Newpassword({route,navigation}) {
     
       <KeyboardAvoidingView  style={style.bodysmall}>
    
-        <Text  style={{alignSelf:"flex-start",marginLeft:5,marginBottom:5,color:darktext}}>Yeni Şifre</Text>
-        <TextInput cursorColor={"blue"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
+        <TextInput mode="outlined" textColor='white' activeOutlineColor='white' label={"Yeni Şifre"} contentStyle={{fontSize:18,height:50,paddingLeft:0}} outlineStyle={{borderRadius:15,borderWidth:2,borderColor:passwordc===true ? "green":passwordc===false ?"red":null}} cursorColor={"white"} autoCapitalize='none' onBlur={()=>
         {
             //setpasswordc(null)
     }}  textContentType="newPassword" style={{
         width:"100%",
-        height:40,
-        marginHorizontal:20,
-        paddingHorizontal:10,
-        backgroundColor:darktext,
-        borderWidth:3,
-        borderColor:passwordc===true ? "green":passwordc===false ?"red":null,
-        borderRadius:15,
-        marginBottom:4,
+        paddingLeft:15,
+        backgroundColor:"#292929",
+        marginBottom:5,
 
     
     }} value={password} onFocus={()=>{
@@ -153,21 +150,14 @@ export default function Newpassword({route,navigation}) {
       validate(password,1)}} onChangeText={(e)=>{validate(e,1)}}/>
 
 
-<Text  style={{alignSelf:"flex-start",marginLeft:5,marginBottom:5,color:darktext}}>Yeni Şifre Tekrar</Text>
-
-       <TextInput cursorColor={"blue"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
+       <TextInput mode="outlined" textColor='white' activeOutlineColor='white' label={"Yeni Şifre Tekrar"} contentStyle={{fontSize:18,height:50,paddingLeft:0}} outlineStyle={{borderRadius:15,borderWidth:2,borderColor:passwordc1===true ? "green":passwordc1===false ?"red":null}} cursorColor={"white"}  autoCapitalize='none' onBlur={()=>
         {
             //setpasswordc(null)
     }}  textContentType="newPassword" style={{
         width:"100%",
-        height:40,
-        marginHorizontal:20,
-        paddingHorizontal:10,
-        backgroundColor:darktext,
-        borderWidth:3,
-        borderColor:passwordc1===true ? "green":passwordc1===false ?"red":null,
-        borderRadius:15,
-        marginBottom:4,
+        paddingLeft:15,
+        backgroundColor:"#292929",
+        marginBottom:5,
 
     
     }} value={password2} onFocus={()=>{
@@ -176,10 +166,10 @@ export default function Newpassword({route,navigation}) {
         
 
         
-
-      <TouchableOpacity onPress={()=>savenewpassword()} disabled={passwordc&&passwordc1 ? false:true} style={{height:40,backgroundColor:"blue",borderRadius:15,paddingHorizontal:15,justifyContent:"center",marginBottom:10,marginTop:10,paddingBottom:1,alignSelf:"stretch", }}>
-       <Text style={{color:darktext,textAlign:"center"}} >Kaydet</Text>
-      </TouchableOpacity>
+{passwordc&&passwordc1 ? <Animated.View entering={FadeInDown}  style={{color:darktext,height:50,backgroundColor:"#111111",width:"100%",borderRadius:15,marginVertical:5,justifyContent:"center",alignItems:"center"}}><TouchableOpacity onPress={()=>savenewpassword()} disabled={passwordc&&passwordc1 ? false:true} style={{height:50,borderRadius:15,justifyContent:"center",width:"100%",alignItems:"center"}}>
+       <Text style={{color:"white",fontSize:18,fontWeight:"300"}}  >Kaydet</Text>
+      </TouchableOpacity></Animated.View> :null}
+      
 {/* <Button title='sdds'onPress={()=>{navigation.navigate("Home")}} >
 
 </Button> */}
@@ -198,12 +188,8 @@ export default function Newpassword({route,navigation}) {
 
 const style= StyleSheet.create({
     body:{
-    position:"absolute",
-    top:Dimensions.get("window").height/4,
-  bottom:0,
-  top:0,
-    width:"100%",
-justifyContent:"center",
+    flex:1,
+    justifyContent:"center",
     alignItems: 'center',
   
     },bodysmall:{
@@ -211,11 +197,10 @@ justifyContent:"center",
         width:"80%",
        
        alignItems:"center",
-       justifyContent:"flex-end",
-        backgroundColor:bg,
+        backgroundColor:"#292929",
         paddingHorizontal:10,
         borderRadius:20,
-        paddingTop:4
+        paddingVertical:5
     },
     
     })

@@ -1,4 +1,4 @@
-import { View,Text,TouchableOpacity, Alert ,Image,StatusBar,Dimensions,useWindowDimensions} from 'react-native'
+import { View,Text,TouchableOpacity, PermissionsAndroid,Alert ,Image,StatusBar,Dimensions,useWindowDimensions,TouchableNativeFeedback,NativeModules} from 'react-native'
 import React,{useContext,useState,useRef,useEffect} from 'react'
 import { UserContext } from '../components/context'
 import { useAuthorization } from '../Authcontext';
@@ -20,18 +20,25 @@ import Camoff from "../images/camoff.svg"
 import Decline from "../images/decline.svg"
 import Switchcam from "../images/switchcam.svg"
 import SystemNavigationBar from 'react-native-system-navigation-bar';
+import { navigationRef } from '../navigators/rootnavigator';
 import { Gesture, GestureDetector, GestureHandlerRootView,ScrollView } from 'react-native-gesture-handler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from '../Authcontext';
+import { IconButton } from 'react-native-paper';
+console.log(storage)
+const {pause:df}=NativeModules
 const as= StatusBar.currentHeight
 let x
-export default function Videocall({navigation,route}) {
+export default function Videocall({navigation,route,soc1}) {
   const { height, width } = useWindowDimensions();
-    const{auth,setauth,messages,setmessages,currentconv,setcurrentconv,messageRef,server,socket,remoteRTCMessage,callst,state,seticall,offlinepause,setcalli}=useAuthorization()
+    const{auth,soc,setauth,messages,setmessages,currentconv,setcurrentconv,messageRef,server,socket,remoteRTCMessage,callst,state,seticall,offlinepause,setcalli,setss,menuopens}=useAuthorization()
     const [type, setType] = useState('JOIN');
     const [pause, setpause] = useState(false);
     const [pauselocal, setpauselocal] = useState(false);
     const [mute, setmute] = useState(false);
     const [mutelocal, setmutelocal] = useState(false);
     const tY= useSharedValue(0)
+    const ty1= useSharedValue(0)
     const translationY= useSharedValue(0)
     const translationX= useSharedValue(0)
     const finalY= useSharedValue(0)
@@ -67,6 +74,7 @@ export default function Videocall({navigation,route}) {
     const [localStream, setlocalStream] = useState(null);
     const ls = useRef(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [back, setBack] = useState(false);
   const [isFront, setisFront] = useState(true);
   const [t, sett] = useState(false);
   const video =useRef(null)
@@ -80,8 +88,11 @@ export default function Videocall({navigation,route}) {
     let convid = route?.params?.convid
     let sdp = route?.params?.sdp
     let notid= route?.params?.notid
+    let caller= route?.params?.caller
   let info = route?.params?.info
+  
 useEffect(()=>{
+  
 translationX.value=0
 translationY.value=0
 finalX.value=0
@@ -91,20 +102,82 @@ yc.value=0
 
 },[height])
 
-
-useEffect(()=>{
-if(remoteStream){
-  //setcalli(false)
-}
-  
-  },[remoteStream])
-    useEffect(() => {
+async function hasAndroidPermission() {
+    
+  const getCheckPermissionPromise = async() => {
+    
+    const x = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA)
+   if(x===true){
+    const y = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO)
+    if(y===true){
+        return true
+    }else{
+      return false
+    }
+   }else{
+    return false
+   }
+  };
+  const hasPermission = await getCheckPermissionPromise();
+  if (hasPermission) {
+    return new Promise(async(re)=>{
+      re(true)
+        })
+  }
+  const getRequestPermissionPromise = async() => {
+    menuopens.current=true
+    const x = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA)
+    console.log(x,4545)
+    const as = await new Promise(resolve =>  setTimeout(async() => {
+      menuopens.current=true
+      const y = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO)
+      if (x === "granted" && y === "granted") {
+        resolve(true)
+       }else{
+        resolve(false)
+       }
+    }, 0));
+    if(as){
+      return true
+    }else{
+      return false
+    }
+   
+    
+   
       
-     SystemNavigationBar.setNavigationColor("transparent","dark")
+    
+  };
+
+ 
+  return await getRequestPermissionPromise()
+}
+
+    useEffect(() => {
+    hasAndroidPermission().then((e)=>{
+ 
+
+   
+ 
+      if(e===true&& state.userId){
+      console.log(socket.current)
+     df.changedcm("shortEdges")
+     setTimeout(async() => {
+      storage.delete("caller")
+      //await AsyncStorage.removeItem("caller")
+      storage.delete("callnotif")
+  
+      //const callnotif = await AsyncStorage.removeItem("callnotif")
+      setss(false)
+       SystemNavigationBar.setNavigationColor("transparent","dark")
+      
+     }, 350);
       /* InCallManager.start()
       InCallManager.setForceSpeakerphoneOn(true); */
         if(state.userId){
-          console.log(state.userId)
+          console.log(soc,9999999)
+          console.log(state.userName)
+         
         //setcallst(true)
         socket.current.on('callAnswered', async(data) => {
           InCallManager.stopRingtone()
@@ -174,6 +247,7 @@ if(data==="video"){
               )
               .then(data => {
                 setcalli(false)
+                setss(false)
                 //console.log('SUCCESS');
               })
               .catch(err => {
@@ -210,7 +284,7 @@ if(data==="video"){
            ls.current=stream
             setlocalStream(stream);
             console.log(stream)
-            stream.getVideoTracks()[0].muted=true
+            
              //peerConnection.current.addStream(stream);
             // setup stream listening
             video.current=peerConnection.current.addTrack(stream.getVideoTracks()[0],stream)
@@ -223,16 +297,11 @@ if(data==="video"){
               }
             }else if(call1==="notification"){
               if(info){
-
-                console.log(6666666)
-                remoteRTCMessage.current.rtcMessage=info.sdp
-                 processAccept().then(()=>{
-setTimeout(() => {
-  
-  //setcalli(false)
-}, 500);
-
-                 })
+                /* let sdp =await AsyncStorage.getItem("sdp")
+                let sdp1=JSON.parse(sdp) 
+                console.log(sdp1) */
+                remoteRTCMessage.current.rtcMessage=info
+                 processAccept()
              
               }
             }else{
@@ -244,149 +313,96 @@ setTimeout(() => {
           }).catch((e)=>{
             console.log(e)
           })
+          if(peerConnection.current){
+            peerConnection.current.ontrack = event => {
+              if(offlinepause.current.video===false){
+                p.current=true
+                setpause(true)
+              }
+              if(offlinepause.current.audio===false){
+                m.current=true
+                setmute(true)
+              }
+             console.log(event.streams[0].getVideoTracks()[0],state.userId)
+                    setRemoteStream(event.streams[0]);
+                  
+                  };
+          
+          
+                  peerConnection.current.onicecandidate = async(event)=> {
+                    
+                      //clearTimeout(timer.current)
+                      let sessionDescription
+                      if (event.candidate) {
+                     
+                       // x+=1
+                        
+                        let a={
+                          calleeId: otherid,
+                          rtcMessage: {
+                            label: event.candidate.sdpMLineIndex,
+                            id: event.candidate.sdpMid,
+                            candidate: event.candidate.candidate,
+                          },
+                          call:callnotif.current,
+                          notid:notid,
+                          callerId:state.userId,
+                          callerName:state.userName
+                        }
+                        check.current=[...check.current,a]
+                        
+                        /* timer.current= setTimeout(async() => {
+                          if(call1){
+                            //setType("other")
+                          }
+                          
+                          //sendICEcandidate(a)
+                           
+                        }, 250); */
+                       /*  check.current= setTimeout(() => {
+                      
+                          //processCall(sessionDescription)
+                        }, 1000); */
+                      
+              
+                      } else {
+                        //setType(true)
+                        //sendICEcandidate(check.current)
+                        
+                        console.log('End of candidates.');
+                      }
+              
+            
+                    
+                    
+                  };
+
+          }
+          
 
          }
-            s()
+         
+           s()
+
+       
 
     
-        peerConnection.current.ontrack = event => {
-    if(offlinepause.current.video===false){
-      p.current=true
-      setpause(true)
-    }
-    if(offlinepause.current.audio===false){
-      m.current=true
-      setmute(true)
-    }
-   console.log(event.streams[0].getVideoTracks()[0],state.userId)
-          setRemoteStream(event.streams[0]);
         
-        };
-peerConnection.current.onnegotiationneeded = (event) => {
-/*  if(ls.current){
-  Alert.alert("89")
-  setTimeout(() => {
-    console.log(localStream)
-    ls.current.getVideoTracks()[0].enabled=false
-   peerConnection.current.addTrack(video.current,ls.current)
-   processCall()
-   // peerConnection.current.addTrack(video.current,localStream)
-    
-  }, 1000);
- } */
- 
- 
-};
-       /*  peerConnection.current.addEventListener( 'negotiationneeded', event => {
-          processCall()
-        } ); */
-/* 
-        peerConnection.current.onicegatheringstatechange = e => {
-         sett(peerConnection.current.iceGatheringState)
-          switch (peerConnection.current.iceGatheringState) {
-            case "gathering":
-              // collection of candidates has begun
-              break;
-            case "complete":
-              // collection of candidates is finished
-              break;
-          
-              default:
-                  console.log('icegatheringChange: state not complete')
-                  break
-          }
-      } */
-        // Setup ice handling
-        /* peerConnection.current.addEventListener( 'iceconnectionstatechange', event => {
-          sett(peerConnection.current?.iceConnectionState)
-          switch( peerConnection.current?.iceConnectionState ) {
-            case 'connected':
-
-            case 'completed':
-              
-              case "failed":
-
-              // You can handle the call being connected here.
-              // Like setting the video streams to visible.
-        
-              break;
-          };
-        } ); */
-
-        /* peerConnection.current.addEventListener( 'icegatheringstatechange', event => {
-          sett(peerConnection.current?.iceConnectionState)
-          switch( peerConnection.current?.iceConnectionState ) {
-            case 'connected':
-
-            case 'completed':
-              
-              case "failed":
-
-              // You can handle the call being connected here.
-              // Like setting the video streams to visible.
-        
-              break;
-          };
-        } ); */
-        
-        
-
-        peerConnection.current.onicecandidate = async(event)=> {
-          
-            //clearTimeout(timer.current)
-            let sessionDescription
-            if (event.candidate) {
-           
-             // x+=1
-              
-              let a={
-                calleeId: otherid,
-                rtcMessage: {
-                  label: event.candidate.sdpMLineIndex,
-                  id: event.candidate.sdpMid,
-                  candidate: event.candidate.candidate,
-                },
-                call:callnotif.current,
-                notid:notid,
-                callerId:state.userId,
-                callerName:state.userName
-              }
-              check.current=[...check.current,a]
-              
-              /* timer.current= setTimeout(async() => {
-                if(call1){
-                  //setType("other")
-                }
-                
-                //sendICEcandidate(a)
-                 
-              }, 250); */
-             /*  check.current= setTimeout(() => {
-            
-                //processCall(sessionDescription)
-              }, 1000); */
-            
-    
-            } else {
-              //setType(true)
-              //sendICEcandidate(check.current)
-              
-              console.log('End of candidates.');
-            }
-    
-  
-          
-          
-        };
       }
-      
+    }else{
+      navigation.goBack()
+    }
+  })
         return () => {
-          SystemNavigationBar.setNavigationColor("transparent","light")
-          StatusBar.setHidden(false)
+          console.log("kkkkokoko")
+          df.changedcm("default")
+          SystemNavigationBar.setNavigationColor("black","light")
+          //StatusBar.setHidden(false)
           //StatusBar.setTranslucent(true)
        //StatusBar.setBackgroundColor("yellow")
           
           //setType(null)
+          
           offlinepause.current.video=true
           offlinepause.current.audio=true
 
@@ -403,6 +419,7 @@ peerConnection.current.onnegotiationneeded = (event) => {
           socket.current.off('callAnswered');
           socket.current.off('ICEcandidate');
           socket.current.off('videopaused');
+        
           
         }
       
@@ -449,7 +466,8 @@ useEffect(()=>{
           calleeId: otherid,
           rtcMessage: sessionDescription,
           notid:notid,
-          callerName:state.userName
+          callerName:state.userName,
+          type:"Video"
        
         });
         } catch (error) {
@@ -487,10 +505,15 @@ useEffect(()=>{
         socket.current.emit('call', data);
       }
       function switchCamera() {
-        setisFront(!isFront)
-        localStream.getVideoTracks().forEach(track => {
-          track._switchCamera();
-        });
+        if(pauselocal===false){
+          setisFront(!isFront)
+          localStream.getVideoTracks().forEach(track => {
+          
+            track._switchCamera();
+          });
+        
+        }
+        
       }
       function toggleCam(){
         console.log("ok")
@@ -534,11 +557,13 @@ socket.current.emit("offlinepause",otherid,"audio",state.userId)
 
       async function togglemenu(){
         if(menu.current===false){
-          tY.value=withTiming(75+48,{duration:150})
+          ty1.value=withTiming(-75-as,{duration:150})
+          tY.value=withTiming(95+48,{duration:150})
           menu.current=true
           SystemNavigationBar.navigationHide()
           StatusBar.setHidden(true)
         }else{
+          ty1.value=withTiming(0,{duration:150})
           tY.value=withTiming(0,{duration:150})
           menu.current=false
           SystemNavigationBar.navigationShow()
@@ -643,84 +668,132 @@ setmainscreen(true)
           transform: [{ translateY: translationY.value },{ translateX: translationX.value }],
         };
       });
+      const ts = useAnimatedStyle(() => {
+        return {
+          transform: [{ translateY: ty1.value }],
+        };
+      });
+      //#FCF5E5
   return (
     <View style={{flex:1,flexDirection:"column"}}>
        {pauselocal&&mainscreen || !mainscreen&&pause ?  <View pointerEvents="none" style={{position:"absolute",top:0,bottom:0,right:0,left:0,justifyContent:"center",alignItems:"center",zIndex:1}}>
-  <View style={{backgroundColor:"black",paddingHorizontal:10,borderRadius:10}}>
-  <Text style={{color:"white",fontSize:27,fontWeight:"600"}} >Duraklatıldı</Text>
+            <View style={{backgroundColor:"black",paddingHorizontal:10,borderRadius:10}}>
+            <Text style={{color:"white",fontSize:27,fontWeight:"600"}} >Duraklatıldı</Text>
 
-  </View>
-</View>:null}
+            </View>
+            </View>:null}
+          <Animated.View style={[ts,{width:"100%",height:75+as,left:0,alignItems:"center",backgroundColor:"#141414",position:"absolute",top:0,zIndex:1,flexDirection:"row",paddingTop:as,borderBottomLeftRadius:25,borderBottomRightRadius:25}]}>
+             <IconButton icon={"arrow-left"} size={30} iconColor='white' style={{margin:0}} onPress={()=>{
+              navigationRef.goBack()
+             }}>
+
+             </IconButton>
+          </Animated.View>
+          
+
       
        {localStream && 
        
-          <>
-          <View style={{flex:1}}
-          onTouchEnd={togglemenu}
-          >
-       <RTCView
-           // onTouchEnd={toggleScreen()}
-          mirror={isFront ? true:false}
-          objectFit={'cover'}
-          style={{ flex: 1 }}
-          streamURL={mainscreen? localStream.toURL():remoteStream?.toURL()} /></View>
+            <>
+            <View style={{flex:1}}
+            onTouchEnd={togglemenu}
+            >
+                <RTCView
+                    // onTouchEnd={toggleScreen()}
+                    mirror={isFront ? true:false}
+                    objectFit={'cover'}
+                    style={{ flex: 1 }}
+                    streamURL={mainscreen? localStream.toURL():remoteStream?.toURL()} />
+            </View>
  {mutelocal&&mainscreen || !mainscreen&&mute  ? <View style={{position:"absolute",bottom:175,right:0,left:0,height:75,justifyContent:"center",alignItems:"center"}}><Text style={{color:"white",fontSize:25,fontWeight:"600"}}>Sessiz</Text></View>:null}
 
-          <Animated.View style={[{borderWidth:2,borderColor:"purple",position:"absolute",backgroundColor:"#FCF5E5",borderTopLeftRadius:15,borderTopRightRadius:15,flexDirection: "row",height:75+48,bottom:0,right:0,left:0,justifyContent:"center"},style1]}>
-            
-            <TouchableOpacity style={{paddingBottom:48,flex: 1 ,borderTopLeftRadius:15,backgroundColor: "#FCF5E5",textAlign: "center",justifyContent:"center",alignItems:"center"}}
+ <Animated.View style={[{backgroundColor: "#141414",position:"absolute",borderTopLeftRadius:25,borderTopRightRadius:25,flexDirection: "row",height:95+48,bottom:0,right:0,left:0,justifyContent:"center"},style1]}>
+            <View style={{flex: 1,borderTopLeftRadius:25,textAlign: "center",justifyContent:"center",alignItems:"center"}}>
+            <TouchableNativeFeedback 
+            style={{}}
               onPress={() => {
                 switchCamera();
               } }
-
+              background={TouchableNativeFeedback.Ripple(
+                "grey",
+                true,
+              )}
             >
-                       <Switchcam width={45} height={45}/>
+              <View style={{width:"100%",height:"100%",backgroundColor:"#141414",justifyContent:"center",alignItems:"center",paddingBottom:48}} >
+
+                       <Switchcam width={45} height={45} style={{color:"#D7D7D7"}}/>
+              </View>
 
 
-            </TouchableOpacity>
-
-
-            <TouchableOpacity style={{paddingBottom:48, flex: 1, textAlign: "center", backgroundColor:"#FCF5E5",justifyContent:"center",alignItems:"center"}}
+            </TouchableNativeFeedback>
+            </View>
+            <View style={{flex: 1,backgroundColor:"red",textAlign: "center",justifyContent:"center",alignItems:"center"}}>
+            <TouchableNativeFeedback 
+            style={{}}
               onPress={() => {
                 seticall(false)
                 navigation.goBack();
               } }
-
+              background={TouchableNativeFeedback.Ripple(
+                "grey",
+                true,
+              )}
             >
-            <Decline  style={{color:"red",transform: [{ scaleX: -1 }]}} width={42} height={42}/>
-            </TouchableOpacity>
+              <View style={{width:"100%",height:"100%",backgroundColor:"#141414",justifyContent:"center",alignItems:"center",paddingBottom:48}} >
+
+              <Decline  style={{color:"red",transform: [{ scaleX: -1 }]}} width={42} height={42}/>
+
+              </View>
 
 
+            </TouchableNativeFeedback>
+            </View>
 
-            <TouchableOpacity style={{paddingBottom:48, flex: 1, textAlign: "center", backgroundColor: "#FCF5E5",justifyContent:"center",alignItems:"center"}}
+            <View style={{flex: 1,backgroundColor:"red",textAlign: "center",justifyContent:"center",alignItems:"center"}}>
+            <TouchableNativeFeedback 
+            style={{}}
               onPress={() => {
                 toggleCam()
               } }
-
+              background={TouchableNativeFeedback.Ripple(
+                "grey",
+                true,
+              )}
             >
-             {pauselocal ?  <Camoff width={51} height={51}/>:
-            <Camon  width={50} height={50}/>
-            }
-              
+              <View style={{width:"100%",height:"100%",backgroundColor:"#141414",justifyContent:"center",alignItems:"center",paddingBottom:48}} >
+
+              {pauselocal ?  <Camoff width={51} height={51} style={{color:"#D7D7D7"}}/>:
+              <Camon  width={50} height={50} style={{color:"#D7D7D7"}}/>
+              }
+
+              </View>
 
 
-            </TouchableOpacity>
+            </TouchableNativeFeedback>
+            </View>
 
-
-
-            <TouchableOpacity style={{paddingBottom:48, borderTopRightRadius:15,flex: 1, textAlign: "center", backgroundColor: "#FCF5E5",alignItems:"center",justifyContent:"center"}}
+            <View style={{borderTopRightRadius:25,flex: 1, textAlign: "center",alignItems:"center",justifyContent:"center"}}>
+            <TouchableNativeFeedback 
+            style={{}}
               onPress={() => {
-                toggleMic()
+                 toggleMic()
               } }
-
+              background={TouchableNativeFeedback.Ripple(
+                "grey",
+                true,
+              )}
             >
-            {mutelocal ?  <Micoff style={{transform: [{ scaleX: -1 }]}} width={42} height={42}/>:
-            <Micon  width={41} height={41}/>
-            }
-           
-            </TouchableOpacity>
-            
-            
+              <View style={{width:"100%",height:"100%",backgroundColor:"#141414",justifyContent:"center",alignItems:"center",paddingBottom:48}} >
+
+              {mutelocal ?  <Micoff style={{color:"#D7D7D7",transform: [{ scaleX: -1 }]}} width={42} height={42}/>:
+              <Micon  style={{color:"#D7D7D7"}} width={41} height={41}/>
+              }
+
+              </View>
+
+
+            </TouchableNativeFeedback>
+            </View>            
           </Animated.View></>
       }
       

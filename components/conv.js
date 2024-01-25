@@ -1,4 +1,4 @@
-import { Image, StyleSheet,TouchableOpacity, Text, View,TouchableHighlight,Dimensions,Alert } from 'react-native'
+import { Image, StyleSheet,TouchableOpacity, Text, View,TouchableHighlight,Dimensions,Alert, TouchableNativeFeedback } from 'react-native'
 import React,{useContext, useState,useEffect,useRef} from 'react'
 import { useAuthorization } from '../Authcontext'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -10,11 +10,97 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { ComposedGesture, ExclusiveGesture } from 'react-native-gesture-handler';
 import User from "../images/user.svg"
 import axios from 'axios';
+import { Button,Portal,Dialog,IconButton,Surface } from 'react-native-paper';
+import { storage } from '../Authcontext';
+import LinearGradient from 'react-native-linear-gradient';
 
 let r =0
 const {width,height} =Dimensions.get("window")
+export async function deleteconv(mpeop1f,otherf,otheridf,notid,state,me,authContext,prt){
+  let k 
+  state.mpeop.find((item,index)=>{
+     if(item._id===mpeop1f._id){
+      return k=index
+     }
+    }
+  )
+  console.log(k,"üüüüüüü")
+  let mpeop=[]
+  let object={
+    sendername:state.userName,
+    receivername:otherf,
+    senderid:state.userId,
+    receiverid:otheridf,
+  receivernotificationid:notid
+  }
+    if(me==="sender"){
+      object["senderdeleted"]=true
+      mpeop1f.sender.delete=true
+      if(mpeop1f.receiver.delete===true){
+        state.mpeop.splice(k,1)
+       
+       }
+    }else{
+      mpeop1f.receiver.delete=true
+      object["receiverdeleted"]=true
+      if(mpeop1f.sender.delete===true){
+        state.mpeop.splice(k,1)
+       
+       }
+    }
+    //close()
+    mpeop=[...state.mpeop]
+    
+    authContext.setmpeop(mpeop)
+    /* await AsyncStorage.setItem("mpeop",JSON.stringify(mpeop))
+    await AsyncStorage.removeItem(mpeop1._id) */
+    storage.set("mpeop",JSON.stringify(mpeop))
+    storage.delete(mpeop1f._id)
+
+    await axios.put(`${prt}/conversations/${mpeop1f._id}`,object).then(async(res)=>{
+      console.log(res.data)
+
+      
+
+
+
+if(res.data==="updated"){
+  /* if(me==="sender"){
+    
+
+   }else{
+      
+   } */
+   mpeop=[...state.mpeop]
+
+
+
+
+
+}else if(res.data==="deleted"){
+
+
+}else{
+  //mpeop=[...state.mpeop,res.data]
+}
+  
+
+//authContext.setmpeop(mpeop)
+
+
+//ne =[{_id:res.data._id,members:[na.id,person._id,na.name,person.name,true,true]}]
+//ne[0]._id=res.data._id
+//message(pre=>[...pre,res.data])
+//chec(person.name)
+}).catch((err)=>{console.log(err)})
+
+
+  //await AsyncStorage.removeItem(mpeop1._id)
+
+
+}
 const Conv = ({mpeop1,peop,userId,navigation,simul,isopen,k,setisopen,o}) => {
-  const { setmessages,istoday,rr,state,server,authContext}=useAuthorization()
+const { setmessages,istoday,rr,state,server,authContext,onlines}=useAuthorization()
 const translationX= useSharedValue(0)
 const initialTouchLocation = useSharedValue({ x: 0, y: 0 })
 const lastx = useSharedValue(0)
@@ -41,6 +127,7 @@ const enable1= useSharedValue(true)
   let me
  
    const [pp,setpp]=useState()
+   const [online,setonline]=useState(false)
    const [enable,setenable]=useState(true)
    const [a,seta]=useState(12)
    //const [notid,setnotid]=useState(null)
@@ -61,16 +148,33 @@ const enable1= useSharedValue(true)
     
 
   }
-
+useEffect(()=>{
+ let f =onlines?.find((item)=>
+   
+    item.userId===otherid
+      
+   
+  )
+  if(f){
+    setonline(true)
+  }else{
+    setonline(false)
+  }
+},[onlines])
 
  useEffect(() => {
+  
   async function s(){
-  let p = await AsyncStorage.getItem("peop")
+  //let p = await AsyncStorage.getItem("peop")
+  let p = storage.getString("peop")
+  
 
   if(p){
+
   JSON.parse(p).forEach((e,i) => {
     if(otherid===e._id){
       notid.current=e.notid
+     
       if(e.profilepicture!==undefined){
         setpp(e.profilepicture)
 
@@ -85,6 +189,8 @@ const enable1= useSharedValue(true)
     }
    });
 
+}else{
+  console.log("yok")
 }
 
 
@@ -136,10 +242,10 @@ const close = ()=>{
 
 
  async function nav(){
-  const mess= await AsyncStorage.getItem(mpeop1._id)
-
+  //const mess= await AsyncStorage.getItem(mpeop1._id)
+ const mess =storage.getString(mpeop1._id)
   if(mess){
-   //console.log(mess)
+    console.log(JSON.parse(mess).length)
   r+=1
     //messageRef.current = JSON.parse(mess).slice(0,5)
     /* function groupedDays(messages) {
@@ -193,7 +299,8 @@ if(e.date===new Date(Date.now()).toLocaleDateString("tr-TR",{day:"2-digit",month
     })
     if(d!==-1){
     
-      setmessages(x.slice(0,a[d]+1))
+      //setmessages(x.slice(0,a[d]+1))
+      setmessages(x)
     }else{
 
       setmessages(x)
@@ -204,6 +311,7 @@ if(e.date===new Date(Date.now()).toLocaleDateString("tr-TR",{day:"2-digit",month
   
     
   }else{
+    
     //console.log(mpeop1,7)
     navigation.navigate("Chatid",{id:mpeop1._id,pp:pp,mpeop:mpeop1,mess:false,newchat:false})
   }
@@ -225,85 +333,13 @@ const cDirection = (d)=>{
   }
 
 }
-function call(){
+function call(type){
 
-  navigation.navigate("Video",{convid:mpeop1._id,otherid:otherid,notid:notid.current})
+  navigation.navigate(type,{convid:mpeop1._id,otherid:otherid,notid:notid.current,other:other})
   close()
 
 }
 
-async function deleteconv(){
-  let mpeop=[]
-  let object={
-    sendername:state.userName,
-    receivername:other,
-    senderid:na.id,
-    receiverid:otherid,
-  receivernotificationid:notid.current
-  }
-    if(me==="sender"){
-      object["senderdeleted"]=true
-      mpeop1.sender.delete=true
-      if(mpeop1.receiver.delete===true){
-        state.mpeop.splice(k,1)
-       
-       }
-    }else{
-      mpeop1.receiver.delete=true
-      object["receiverdeleted"]=true
-      if(mpeop1.sender.delete===true){
-        state.mpeop.splice(k,1)
-       
-       }
-    }
-    close()
-    mpeop=[...state.mpeop]
-    
-    authContext.setmpeop(mpeop)
-    await AsyncStorage.setItem("mpeop",JSON.stringify(mpeop))
-  console.log(mpeop1._id,555555555)
-    await axios.put(`${prt}/conversations/${mpeop1._id}`,object).then(async(res)=>{
-      console.log(res.data)
-
-      
-
-
-
-if(res.data==="updated"){
-  if(me==="sender"){
-    
-
-   }else{
-      
-   }
-   mpeop=[...state.mpeop]
-
-
-
-
-
-}else if(res.data==="deleted"){
-
-
-}else{
-  //mpeop=[...state.mpeop,res.data]
-}
-  
-
-//authContext.setmpeop(mpeop)
-
-
-//ne =[{_id:res.data._id,members:[na.id,person._id,na.name,person.name,true,true]}]
-//ne[0]._id=res.data._id
-//message(pre=>[...pre,res.data])
-//chec(person.name)
-}).catch((err)=>{console.log(err)})
-
-
-  //await AsyncStorage.removeItem(mpeop1._id)
-
-
-}
 
 
 function f(k){
@@ -352,7 +388,7 @@ const touch = Gesture.Tap().onStart(()=>{
      }
    }).onTouchesDown((evt)=>{
    }).onChange((evt) =>{
-    if(Math.abs(evt.translationX)>=width/4 ){
+    if(Math.abs(evt.translationX)>=width/3 ){
       
       
       return
@@ -375,15 +411,15 @@ const touch = Gesture.Tap().onStart(()=>{
      
         open.value=true
         direction.value="right"
-        lastx.value=width/4
-        translationX.value=withTiming(width/4)
+        lastx.value=width/5
+        translationX.value=withTiming(width/5)
         runOnJS(f)(k)
 
       }else{
         if(direction.value==="right"){
         
-          lastx.value=width/4
-          translationX.value=withTiming(width/4)
+          lastx.value=width/5
+          translationX.value=withTiming(width/5)
 
         }else{
       
@@ -403,16 +439,16 @@ const touch = Gesture.Tap().onStart(()=>{
        
           open.value=true
           direction.value="left"
-          lastx.value=-width/4
-          translationX.value=withTiming(-width/4)
+          lastx.value=-width/3
+          translationX.value=withTiming(-width/3)
           runOnJS(f)(k)
 
           
         }else{
           if(direction.value==="left"){
            
-            lastx.value=-width/4
-            translationX.value=withTiming(-width/4)
+            lastx.value=-width/3
+            translationX.value=withTiming(-width/3)
             
           }else{
           
@@ -457,42 +493,63 @@ if((mpeop1?.sender?.id===na.id && mpeop1?.sender.delete===false) || (mpeop1?.rec
   return (
    
     <GestureDetector gesture={g}  >
- <Animated.View style={{marginHorizontal:10}}>
-     <TouchableOpacity style={{position:"absolute",height:"100%",right:0,width:100,backgroundColor:"green",borderRadius:10}}
-     onPress={()=>{
-    call()
-     }}
-     ></TouchableOpacity>
-      <TouchableOpacity style={{position:"absolute",height:"100%",width:100,backgroundColor:"red",borderRadius:10}}
-      onPress={async()=>{
-        deleteconv()
+          <Animated.View style={{justifyContent:"center",alignItems:"center"}}>
+          
+              <IconButton icon={"video"} size={35} iconColor='white' rippleColor={"grey"} style={{width:60,height:60,position:"absolute",right:60,borderRadius:50}}
+              onPress={()=>{
+              call("Video")
+              }}
+              >                
+              </IconButton>
+              <IconButton icon={"phone"} size={30} iconColor='white' rippleColor={"grey"} style={{width:60,height:60,position:"absolute",right:0,borderRadius:50}}
+              onPress={()=>{
+              call("Audio")
+              }}
+              >                
+              </IconButton>
+              <IconButton icon={"trash-can-outline"} size={35} iconColor='red' rippleColor={"grey"} style={{width:60,height:60,position:"absolute",left:0,borderRadius:50}}
+                onPress={async()=>{
+                  deleteconv(mpeop1,other,otherid,notid.current,state,me,authContext,prt,)
+                  close()
 
-      }}
-      
-      ></TouchableOpacity>
-    <Animated.View style={[styles.body,animated]}>
-      <TouchableOpacity onPress={()=>{
-        nav()
-        setisopen(null)
-      }} activeOpacity={0.5} style={{flexDirection:"row",flex:1,justifyContent:"space-between"}}>
-        <View style={styles.first}>
-         {pp?  <Image style={{width:60,height:60,borderRadius:100,resizeMode:"cover"}} source={{uri:pp}}  />:<User style={{color:"blue"}} width={60} height={60}/>}
+                }}
+                
+              >
+              </IconButton>
+              <Animated.View style={[styles.body,animated]}>
+               
+                <View style={{flex:1,backgroundColor:"#505050"}}>
+                    <TouchableNativeFeedback 
+                    background={TouchableNativeFeedback.Ripple("grey")}
+                    onPress={()=>{
+                      nav()
+                      setisopen(null)
+                    }} activeOpacity={0.5} >
+                      <View style={{flexDirection:"row",flex:1,justifyContent:"space-between",backgroundColor:"black"}}>
+                            <View style={styles.first}>
+                              <LinearGradient start={{x: 0, y: 0}} end={{x: 1, y: 1}} colors={online ?['#21D4FD','#B721FF']:["transparent","transparent"]} style={{width:68,height:68,borderRadius:35,justifyContent:"center",alignItems:"center"}}>
+                              {pp? <TouchableOpacity onPress={()=>{
+                              navigation.navigate("Photo",{img1:pp})
+                            }}><Image style={{width:60,height:60,borderRadius:100,resizeMode:"cover"}} source={{uri:pp}}/></TouchableOpacity> :<User style={{color:"#6538c6"}} width={60} height={60}/>}
 
-       
-        <View style={styles.two}>
-          <Text style={{color:"black"}}>{other}</Text>
-          <Text style={{color:"black"}}>{mpeop1._id}</Text>
-          <Text style={{color:"black"}}>{mpeop1.sender.id===na.id? mpeop1.receiver.delete.toString():mpeop1.sender.delete.toString()}</Text>
-        </View>
-        </View>
-        <View style={styles.third}>
-        <Text style={{color:"red"}} >{}</Text>
-        
-        </View>
-        
-        </TouchableOpacity>     
-        </Animated.View>
-    </Animated.View></GestureDetector>
+                              </LinearGradient>
+
+                          
+                                  <View style={styles.two}>
+                                    <Text style={{fontSize:17,fontWeight:300,color:"white"}}>{other}</Text>
+                                  </View>
+                            </View>
+                            <View style={styles.third}>
+                                  <Text style={{color:"red"}} >{}</Text>
+                            
+                            </View>
+                          </View>
+                      </TouchableNativeFeedback>     
+                </View>     
+               
+              </Animated.View>
+          </Animated.View>
+    </GestureDetector>
   )
 }
   
@@ -505,19 +562,19 @@ const styles = StyleSheet.create({
       flex:1,
       flexDirection:"row",
         height:75,
-        backgroundColor:"white",
-        borderRadius:10,
+        backgroundColor:"#141414",
+        borderRadius:15,
         marginHorizontal:0,
         marginBottom:0,
      justifyContent:"space-between",
         alignItems:"center",
     },first:{
-  marginLeft:5,
+      marginLeft:5,
       flexDirection:"row",
-      alignSelf:"center"
+      justifyContent:"center",
+      alignItems:"center",
       
     },two:{
-backgroundColor:"red",
 flexDirection:"column",
 paddingLeft:5,
 justifyContent:"center"
@@ -528,18 +585,5 @@ justifyContent:"center"
       marginRight:5
 
 
-    },linearGradient: {
-      flex: 1,
-      paddingLeft: 15,
-      paddingRight: 15,
-      borderRadius: 5
-    },
-    buttonText: {
-      fontSize: 18,
-      fontFamily: 'Gill Sans',
-      textAlign: 'center',
-      margin: 10,
-      color: '#ffffff',
-      backgroundColor: 'transparent',
-    },
+    }
 })

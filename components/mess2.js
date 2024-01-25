@@ -5,6 +5,8 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthorization } from '../Authcontext';
 import Animated,{SlideInRight,SlideInLeft,Layout, SlideInUp} from 'react-native-reanimated';
+import Gallery, { GalleryRef } from 'react-native-awesome-gallery';
+
 const Mess2 = ({messages,allmess,fontscale,setIsVisible,setimg,userId,k,style1,pd,rr,setstat}) => {
 const nav =useNavigation()
 let before = allmess[k+1]
@@ -83,10 +85,9 @@ return(
   return (
     <Animated.View entering={SlideInUp.delay(50)} layout={Layout.delay(25)} >
     <View style={style(who).container} >
-    {messages.sender==na.id? <View style={messages.media ? {padding:5,borderRadius:11,borderBottomRightRadius:mode.after? 11:0,borderTopRightRadius: mode.before?11:0 ,backgroundColor:"transparent",justifyContent:"center"}:[{flexDirection:"column",padding:5,maxWidth:"80%",paddingHorizontal:8,borderRadius:11,borderBottomRightRadius:mode.after? 11:0,borderTopRightRadius: mode.before?11:0,backgroundColor:"transparent",justifyContent:"center"}]}>
+    {messages.sender==na.id? <View style={messages.media ? {padding:5,borderRadius:11,borderBottomRightRadius:mode.after? 11:0,borderTopRightRadius: mode.before?11:0 ,backgroundColor:"transparent",justifyContent:"center"}:[{flexDirection:"column",padding:5,maxWidth:"80%",paddingHorizontal:8,borderRadius:18,borderBottomRightRadius:mode.after? 18:0,borderTopRightRadius: mode.before?18:0,backgroundColor:"red",justifyContent:"center"}]}>
       {messages.media? <TouchableOpacity
       onPress={()=>{
-        //rr.value=true
         nav.navigate("Photo",{img1:messages.media})
         //img.current=messages.media
         setimg(messages.media)

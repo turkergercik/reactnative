@@ -1,4 +1,4 @@
-import { View, Linking,Text,StyleSheet,Button,Dimensions,Image,Keyboard, TextInput, SafeAreaView, ScrollView, KeyboardAvoidingView, StatusBar, TouchableOpacity } from 'react-native'
+import { View, NativeModules,Linking,Text,StyleSheet,Button,Dimensions,Image,Keyboard, TextInput as Ti, SafeAreaView, ScrollView, KeyboardAvoidingView, StatusBar, TouchableOpacity, Alert } from 'react-native'
 import React from 'react'
 import { useState,useEffect } from 'react'
 import axios from 'axios'
@@ -10,7 +10,10 @@ import { signIn, setmpeop, setpeop,signOut  } from "../redux/counter";
 import messaging from '@react-native-firebase/messaging';
 import notifee, { AndroidColor, AndroidImportance,AndroidStyle, AndroidVisibility,EventType } from '@notifee/react-native';
 import RNCallKeep from 'react-native-callkeep';
-
+import { TextInput } from 'react-native-paper';
+import Animated, { SlideInDown, SlideInUp, SlideOutDown,FadeInDown,FadeOut } from 'react-native-reanimated';
+import { storage } from '../Authcontext';
+const {pause}=NativeModules
 let darktext="#F0EFE9"
 let bgfordarkmode="dark:bg-[#1a1a1a]"
 let whitefordark="dark:text-[#F0EFE9]"
@@ -73,7 +76,7 @@ export default function Login({route,navigation}) {
   
   
   }
-  const{mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,userid,server,t,authContext}=useAuthorization()
+  const{mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,userid,server,t,authContext,menuopens,setss}=useAuthorization()
   //const { userToken,userId,server,mpeop,peop } = useSelector((state) => state.counter);
   //const dispatch=useDispatch()
   let prt=server 
@@ -82,22 +85,31 @@ export default function Login({route,navigation}) {
    const login=async(e)=>{
     console.log(prt)
     Keyboard.dismiss()
+    menuopens.current=true
+    const a = await pause.overapprequest()
+    console.log(a)
+    if(a===true){
+      
+      menuopens.current=false
+    setss(true)
     await axios.post(`${prt}/login`,{
         email:email,
         password:password,
         notid:token1 ? token1:""
     }).then(async(response) => {
+      
       console.log(response.data)
       if(response.data.data==="wp"){
-        
+        setss(false)
         setpasswordc(false)
         
       }
       else if(response.data.data==="we"){
+        setss(false)
         setemailc(false)
       }else {
       
-      await AsyncStorage.setItem("userToken",response.data.token)
+      /* await AsyncStorage.setItem("userToken",response.data.token)
       await AsyncStorage.setItem("email",email)
       await AsyncStorage.setItem("name",response.data.name)
       await AsyncStorage.setItem("id",response.data.id)
@@ -106,9 +118,17 @@ export default function Login({route,navigation}) {
       authContext.signIn({userToken:response.data.token,userId:response.data.id,userName:response.data.name})
        //navigation.navigate("Chat")
 
-      })
-  
-     
+      }) */
+
+     storage.set("userToken",response.data.token)
+     storage.set("email",email)
+     storage.set("name",response.data.name)
+     storage.set("id",response.data.id)
+     storage.set("aut",JSON.stringify({"isA":true}))
+     if(response.data.profilepicture){
+       storage.set("mypp",JSON.stringify(response.data.profilepicture))
+     }
+     authContext.signIn({userToken:response.data.token,userId:response.data.id,userName:response.data.name})
      
       
       
@@ -119,6 +139,7 @@ export default function Login({route,navigation}) {
       }).catch((q)=>{
         console.log(q)
       })
+    }
   
 /*   setemail(null)
   setemailc(null)
@@ -138,13 +159,24 @@ export default function Login({route,navigation}) {
     //bootstrap()
     async function req(){
       try {
-        const granted = await PermissionsAndroid.request(
+        let granted =null
+        const as= await PermissionsAndroid.check(
           PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
         )
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('You can use the camera');
-        } else {
-          console.log('Camera permission denied');
+        console.log(as)
+        if(as===true){
+          granted=true
+        }else{
+       
+          menuopens.current=true
+          let r = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+          )
+          //menuopens.current=false
+          if(r==="granted" || r==="never_ask_again"){
+            granted=true
+          }
+          console.log(r)
         }
         if(granted){
           token1 = await messaging().getToken();
@@ -152,7 +184,7 @@ export default function Login({route,navigation}) {
            settoken(token1)
           console.log(token1)
         }
-        
+       
       } catch (error) {
         
       }
@@ -205,51 +237,52 @@ export default function Login({route,navigation}) {
             <SafeAreaView  style={[style.body]}> 
     
       <KeyboardAvoidingView  style={style.bodysmall}>
-   
-        <Text  style={{alignSelf:"flex-start",marginLeft:5,marginBottom:5,color:darktext}}>Email</Text>
-        <TextInput cursorColor={"blue"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
+        <TextInput label={"Email"}  mode="outlined" textColor='white' contentStyle={{fontSize:18,height:50}}  activeOutlineColor='white'  outlineStyle={{borderRadius:15,borderWidth:2,borderColor:emailc===true ? "green":emailc===false ?"red":null}} cursorColor={"white"} selectionColor={"gold"} autoCapitalize='none' onBlur={()=>
         {
             //setemailc(null)
     }}  textContentType='emailAddress' style={{
         width:"100%",
-        height:40,
-        marginHorizontal:20,
-        paddingHorizontal:10,
-        backgroundColor:darktext,
-        borderWidth:3,
-        borderColor:emailc===true ? "green":emailc===false ?"red":null,
-        borderRadius:15,
-        marginBottom:4,
+     
+        marginBottom:10,
+        backgroundColor:"#292929",
 
     
     }} value={email} onFocus={()=>{
       
       validate(email)}} onChangeText={(e)=>{validate(e)}}/>
-        <Text style={{alignSelf:"flex-start",marginLeft:5,marginBottom:5,color:darktext}}>Password</Text>
-        <TextInput textContentType='password' keyboardType="numeric"  style={{
+        <TextInput mode="outlined"  label={"Password"} activeOutlineColor='white' contentStyle={{fontSize:18,height:50}} outlineStyle={{borderRadius:15,borderWidth:2,borderColor:passwordc===true ? "green":passwordc===false ?"red":null,}} textContentType='password' keyboardType="numeric" cursorColor='white'  style={{
         width:"100%",
-        height:40,
-        marginHorizontal:20,
-        paddingHorizontal:10,
-        backgroundColor:darktext,
-        borderWidth:3,
-        borderColor:passwordc===true ? "green":passwordc===false ?"red":null,
+   
+    
+        backgroundColor:"#292929",
         borderRadius:15,
-        marginBottom:4,
+        marginBottom:10,
 
     
     }} value={password} onFocus={()=>validateP(password)} onChangeText={(e)=>{validateP(e)}} secureTextEntry/>
 
-        
-<Text style={{color:darktext}} onPress={()=>navigation.navigate("Register")
-}>Üye Değilim</Text>
-<Text style={{color:darktext}} onPress={()=>navigation.navigate("Resetpassword")
-}>Şifremi unuttum</Text>
-<Text selectable={true} style={{color:darktext,margin:10}} 
->{token}</Text>
-      <TouchableOpacity onPress={()=>login()} disabled={emailc&&passwordc ? false:true} style={{height:40,backgroundColor:"blue",borderRadius:15,paddingHorizontal:15,justifyContent:"center",marginBottom:10,marginTop:10,paddingBottom:1,alignSelf:"stretch", }}>
-       <Text style={{color:darktext,textAlign:"center"}} >Giriş Yap</Text>
-      </TouchableOpacity>
+    {emailc && passwordc ? 
+<Animated.View entering={FadeInDown} exiting={FadeOut}  style={{backgroundColor:"black",width:"100%",borderRadius:15,height:50,justifyContent:"center",
+alignItems:"center"}} >
+<TouchableOpacity onPress={()=>login()} disabled={emailc&&passwordc ? false:true} style={{flex:1,width:"100%",borderRadius:15,justifyContent:"center",alignItems:"center"}}>
+ <Text style={{color:darktext,textAlign:"center"}} >Giriş Yap</Text>
+</TouchableOpacity></Animated.View>:
+<View  style={{flexDirection:"row",height:50,justifyContent:"center",alignItems:"center",width:"100%"}}>
+
+
+<TouchableOpacity style={{ paddingHorizontal:5,marginRight:10,borderRadius:15,color: darktext,backgroundColor:"#111111",height:"100%",flex:1,justifyContent:"center",alignItems:"center"}} onPress={() => navigation.navigate("Register")}>
+          <Text style={{fontSize:17,fontWeight:"300",color:"white"}}>
+            Üye Değilim
+          </Text>
+
+        </TouchableOpacity><TouchableOpacity style={{paddingHorizontal:7,borderRadius:15,color: darktext,flex:1,height:"100%",backgroundColor:"#111111",justifyContent:"center",alignItems:"center" }} onPress={() => navigation.navigate("Resetpassword")}>
+          <Text style={{fontSize:17,fontWeight:"300",color:"white",textAlign:"center"}}>
+          Şifremi unuttum
+          </Text>
+        </TouchableOpacity>
+        </View>
+        }    
+
 {/* <Button title='sdds'onPress={()=>{navigation.navigate("Home")}} >
 
 </Button> */}
@@ -268,24 +301,19 @@ export default function Login({route,navigation}) {
 
 const style= StyleSheet.create({
     body:{
-    position:"absolute",
-    top:Dimensions.get("window").height/4,
-  bottom:0,
-  top:0,
-    width:"100%",
+    flex:1,
 justifyContent:"center",
     alignItems: 'center',
+    backgroundColor:"black"
   
     },bodysmall:{
        
         width:"80%",
-       
-       alignItems:"center",
-       justifyContent:"flex-end",
-        backgroundColor:bg,
+        alignItems:"center",
+        backgroundColor:"#292929",
         paddingHorizontal:10,
         borderRadius:20,
-        paddingTop:4
+        paddingVertical:10
     },
     
     })

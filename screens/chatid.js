@@ -1,16 +1,15 @@
-import { View, Text,StyleSheet,Modal,FlatList, StatusBar,KeyboardAvoidingView,useWindowDimensions, Alert,BackHandler,TouchableOpacity,Keyboard,Dimensions } from 'react-native'
-import React,{useContext,useEffect, useState,useRef} from 'react'
+import { View, NativeModules,Text,LayoutAnimation ,StyleSheet,Modal,FlatList, StatusBar,KeyboardAvoidingView,useWindowDimensions, Alert,BackHandler,TouchableOpacity,Keyboard,Dimensions, TurboModuleRegistry } from 'react-native'
+import React,{useContext,useEffect, useState,useRef,useCallback} from 'react'
 import { useAuthorization } from '../Authcontext'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useRoute,useIsFocused } from '@react-navigation/native'
+import { useRoute,useIsFocused, LinkingContext } from '@react-navigation/native'
 import axios from 'axios'
 import { Image } from 'react-native'
 import Mess from '../components/mess'
 import Conv from '../components/conv'
-import { TextInput } from 'react-native'
+import { TextInput as Ti } from 'react-native'
 import { Gesture, GestureDetector, GestureHandlerRootView,ScrollView } from 'react-native-gesture-handler';
-import Animated ,{ Extrapolation,useAnimatedKeyboard, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming,AnimatedLayout, FadeIn, Layout, SlideInDown, SlideInUp, SlideOutUp, SlideInRight, SlideInLeft, withSpring,Easing } from 'react-native-reanimated'
-import { Transition } from 'react-native-reanimated';
+import Animated ,{ Extrapolation,useAnimatedKeyboard, interpolate, runOnJS,useAnimatedStyle, useSharedValue, withDelay, withTiming,AnimatedLayout, FadeIn, Layout, SlideInDown, SlideInUp, SlideOutUp, SlideInRight, SlideInLeft, withSpring,Easing, LinearTransition, withRepeat, withSequence, SlideOutDown, SlideOutLeft } from 'react-native-reanimated'
 //import ImageView from "react-native-image-viewing";
 import ImageViewer from "react-native-reanimated-image-viewer";
 //import ImageViewer from './imageviewerback'
@@ -32,13 +31,115 @@ import { PermissionsAndroid, Platform } from "react-native";
 import { CameraRoll } from "@react-native-camera-roll/camera-roll";
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import Orientation from 'react-native-orientation-locker'
+import User from "../images/user.svg"
+import { Button,Icon,IconButton,TextInput,Menu ,Divider,Portal,Dialog,Avatar} from 'react-native-paper'
+import FileViewer from "react-native-file-viewer";
+import ImageView from "better-react-native-image-viewing";
+import Gallery, { GalleryRef } from 'react-native-awesome-gallery';
+import { FlashList } from '@shopify/flash-list'
+import BigList from "react-native-big-list";
+import { storage } from '../Authcontext'
+let ssd
+const {pause}=NativeModules
+let x
 const {width,height} =Dimensions.get("window")
 const height1=Dimensions.get("screen").height
 //const navbar=height1-height-StatusBar.currentHeight
 const as= StatusBar.currentHeight
 let img
+export async function deleteconv(mpeop1f,otherf,otheridf,notid,state,me,authContext,prt){
+  let k 
+  state.mpeop.find((item,index)=>{
+     if(item._id===mpeop1f._id){
+      return k=index
+     }
+    }
+  )
+  console.log(k,"üüüüüüü")
+  let mpeop=[]
+  let object={
+    sendername:state.userName,
+    receivername:otherf,
+    senderid:state.userId,
+    receiverid:otheridf,
+  receivernotificationid:notid
+  }
+    if(me==="sender"){
+      object["senderdeleted"]=true
+      mpeop1f.sender.delete=true
+      if(mpeop1f.receiver.delete===true){
+        state.mpeop.splice(k,1)
+       
+       }
+    }else{
+      mpeop1f.receiver.delete=true
+      object["receiverdeleted"]=true
+      if(mpeop1f.sender.delete===true){
+        state.mpeop.splice(k,1)
+       
+       }
+    }
+    //close()
+    mpeop=[...state.mpeop]
+    
+    authContext.setmpeop(mpeop)
+    /* await AsyncStorage.setItem("mpeop",JSON.stringify(mpeop))
+    await AsyncStorage.removeItem(mpeop1._id) */
+    storage.set("mpeop",JSON.stringify(mpeop))
+    storage.delete(mpeop1f._id)
+
+    await axios.put(`${prt}/conversations/${mpeop1f._id}`,object).then(async(res)=>{
+      console.log(res.data)
+
+      
+
+
+
+if(res.data==="updated"){
+  /* if(me==="sender"){
+    
+
+   }else{
+      
+   } */
+   mpeop=[...state.mpeop]
+
+
+
+
+
+}else if(res.data==="deleted"){
+
+
+}else{
+  //mpeop=[...state.mpeop,res.data]
+}
+  
+
+//authContext.setmpeop(mpeop)
+
+
+//ne =[{_id:res.data._id,members:[na.id,person._id,na.name,person.name,true,true]}]
+//ne[0]._id=res.data._id
+//message(pre=>[...pre,res.data])
+//chec(person.name)
+}).catch((err)=>{console.log(err)})
+
+
+  //await AsyncStorage.removeItem(mpeop1._id)
+
+
+}
+
+
+
+
 const Chatid = ({route,navigation,setmesnotif}) => {
+const windowSize =messages?.length > 50 ? messages.length/4 : 21;
+let num =100 
+let initialLoadNumber = 40 
   async function hasAndroidPermission() {
+    
     const getCheckPermissionPromise = async() => {
       if (Platform.Version >= 33) {
         return Promise.all([
@@ -58,6 +159,7 @@ const Chatid = ({route,navigation,setmesnotif}) => {
       return true;
     }
     const getRequestPermissionPromise = async() => {
+      menuopens.current=true
       if (Platform.Version >= 33) {
         return PermissionsAndroid.requestMultiple([
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
@@ -86,11 +188,12 @@ const Chatid = ({route,navigation,setmesnotif}) => {
   const st = useSharedValue(0)
   const stat1 = useSharedValue(0)
   const key = useSharedValue(0)
+  const stickydatestyle = useSharedValue(as)
   const scrollHandler = useAnimatedScrollHandler((event) => {
     console.log("45")
     scrollY.value = event.contentOffset.y})
   const {fontScale} = useWindowDimensions(); // import useWindowDimensions()
-/*   const data=[{"__v": 0, "_id": "640f77ce4adac71e5768f41a", "conversationid": "6373375a8f3d293cc082f78f", "createdAt": "2023-03-13T19:21:50.384Z", "sender": "62d6c7b8f4925109c40a5ae1", "text": "J", "updatedAt": "2023-03-13T19:21:50.384Z"}, 
+/*   const data=[{"__v": "_id": "640f77ce4adac71e5768f41a", "conversationid": "6373375a8f3d293cc082f78f", "createdAt": "2023-03-13T19:21:50.384Z", "sender": "62d6c7b8f4925109c40a5ae1", "text": "J", "updatedAt": "2023-03-13T19:21:50.384Z"}, 
   {"__v": 0, "_id": "640e2f8088790ff0e94fad67", "conversationid": "6373375a8f3d293cc082f78f", "createdAt": "2023-03-12T20:01:04.628Z", "sender": "62d6c7b8f4925109c40a5ae1", "text": "Parselasyon planı Belediyemiz ilan tahtasında asılmış olup, parselasyon plamı, dağıum cetveli ve", "updatedAt": "2023-03-12T20:01:04.628Z"}
 ,{"__v": 0, "_id": "640f77ce4adac71e5768f41a", "conversationid": "6373375a8f3d293cc082f78f", "createdAt": "2023-03-13T19:21:50.384Z", "sender": "62d6c7b8f4925109c40a5ae1", "text": "J", "updatedAt": "2023-03-13T19:21:50.384Z"}, 
 {"__v": 0, "_id": "640e2f8088790ff0e94fad67", "conversationid": "6373375a8f3d293cc082f78f", "createdAt": "2023-03-12T20:01:04.628Z", "sender": "62d6c7b8f4925109c40a5ae1", "text": "Parselasyon planı Belediyemiz ilan tahtasında asılmış olup, parselasyon plamı, dağıum cetveli ve", "updatedAt": "2023-03-12T20:01:04.628Z"}
@@ -114,13 +217,18 @@ const images = [
     uri: "https://images.unsplash.com/photo-1569569970363-df7b6160d111",
   },
 ];
-const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,server,state,socket,setstat,rr,stat,authContext,check,allm,setss,cam,setimg,img}=useAuthorization()
-
+const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,server,state,socket,setstat,rr,stat,authContext,check,allm,setss,cam,setimg,img,setsomemessages,somemessages,menuopens,onlines,inchat,typing,currentother}=useAuthorization()
+let prt= server
+let na={
+  id:state.userId
+}
   const a = useRoute()
   let other
   let otherid
-  
+  let me
   let id= route?.params?.id
+  currentconv.current=id
+  console.log(id,8888888)
   let notid= route?.params?.notid
   let pp = route?.params?.pp
   let mpeop =route?.params?.mpeop
@@ -128,38 +236,76 @@ const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,ser
   let newchat= route?.params?.newchat
   let re= route?.params?.re
   let pos= route?.params?.pos
+  if(mpeop){
+    if(na.id===mpeop.sender?.id){
+      me="sender"
+  other= mpeop.receiver.name
+  otherid= mpeop.receiver.id
+  currentother.current=otherid
+    }else {
+      me="receiver"
+      other= mpeop.sender?.name
+      otherid= mpeop.sender?.id
+      currentother.current=otherid
+    }
+  } 
 
-
-  console.log(mpeop,41)
  const today = useRef(false)
 
   const scroll = useRef()
+  const stickydatevalue = useRef(false)
+  const secondload = useRef(true)
+  const offsets = useRef([])
+  const indexes = useRef([])
+  const currentindex = useRef(0)
+  const search = useRef(null)
   const input = useRef(null)
+  const starttype = useRef(false)
   const inputT = useRef(null)
+  const animate = useRef(null)
   
 
   //const { userToken,userId,server,peop,messages } = useSelector((state) => state.counter);
   //const dispatch = useDispatch();
-  let prt= server
-  let na={
-    id:state.userId
-  }
+ 
   const page =useRef(1)
   const canvas=useRef(null)
   //const allm =useRef([])
   const[text,settext]=useState(null)
+  const[toph,settoph]=useState(Dimensions.get("screen").height)
+  const[stickydate,setstickydate]=useState(null)
+  const[searchmode,setsearchmode]=useState(false)
   //const [img, setimg] = useState(null)
   const [inp, setinp] = useState(false)
+  const [zi, setzi] = useState(true)
+  const [scrolls, setscrolls] = useState(false)
+  const [completed, setcompleted] = useState(true)
   const [w, setw] = useState(null)
+  const [menu, setmenu] = useState(true)
   const [h, seth] = useState(null)
+  const [changing, setchanging] = useState(false)
+  const [headersarr, setheadersarr] = useState([0])
+  
   const[focus,setfocus]=useState(false)
   const[camopen,setcamopen]=useState(false)
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [visible, setIsVisible] = useState(false);
+  const [visiblem, setIsVisiblem] = useState(false);
+  const [chatoptions, setchatoptions] = useState(false);
+  const [offset, setOffset] = useState(1)
+  const [online,setonline]=useState(false)
+  const [inchats,setinchats]=useState(false)
+  const [searchvisibility,setsearchvisibility]=useState(false)
+
+  
+  const [typings,settypings]=useState(false)
   let headers={ Authorization:state.userToken}
   const scale= useSharedValue(1)
   const opacity= useSharedValue(1)
-  const zoom1= useSharedValue(false)
+  const op= useSharedValue(1)
+  const op1= useSharedValue(1)
+  const op2= useSharedValue(1)
+  const op3= useSharedValue(1)
   const translationX= useSharedValue(1)
   const translationY= useSharedValue(0)
   const keyboard= useSharedValue(-1)
@@ -172,6 +318,95 @@ const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,ser
   const initialTouchLocation = useSharedValue({ x: 0, y: 0 })
 
 
+  //const deletefunc = deleteconv(mpeop,other,otherid,notid.current,state,authContext,prt)
+  useEffect(()=>{
+    let f =onlines?.find((item)=>
+      
+       item.userId===otherid
+         
+      
+     )
+     if(f){
+       setonline(true)
+       socket.current.emit("inchat",otherid,currentconv.current)
+     }else{
+       setonline(false)
+     }
+   },[onlines])
+   
+ 
+   useEffect(()=>{
+    //op.value=withRepeat(withSequence(withTiming(0),withTiming(1)),-1)
+    //op1.value=withDelay(100,withRepeat(withSequence(withTiming(0),withTiming(1)),-1))
+  
+    let f =typing?.find((item)=>
+      
+       item===id
+         
+      
+     )
+     if(f){
+     
+       settypings(true)
+       op1.value=withRepeat(withSequence(withTiming(0,conf),withTiming(1,conf)),-1)
+       op2.value=withDelay(150,withRepeat(withSequence(withTiming(0,conf),withTiming(1,conf)),-1))
+       op3.value=withDelay(300,withRepeat(withSequence(withTiming(0,conf),withTiming(1,conf)),-1))
+     }else{
+       settypings(false)
+     }
+    
+   },[typing])
+  
+
+   useEffect(()=>{
+    console.log(inchat,555)
+    let f =inchat?.find((item)=>
+       item.conversationid===id
+         
+      
+     )
+     if(f){
+       setinchats(true)
+     }else{
+       setinchats(false)
+     }
+   },[inchat])
+
+   useEffect(()=>{
+    socket.current.emit("inchat",otherid,id)
+    return ()=>{
+  
+      socket.current.emit("outchat",otherid,id)
+      
+    }
+   },[])
+  
+   useEffect(()=>{
+    if(changing!==false){
+      if(starttype.current===false){
+        console.log("o78")
+        socket.current.emit("typing",otherid,id)
+        
+      }
+      starttype.current=true
+
+    
+     clearTimeout(x)
+     x= setTimeout(() => {
+      console.log("o77")
+      socket.current.emit("nottyping",otherid,id)
+      starttype.current=false
+    }, 1000);
+  }
+    return ()=>{
+      
+      
+      
+    }
+   },[changing])
+   useEffect(()=>{
+console.log("787878787878")
+   },[typings])
   const resizeImage = (base64Str,pos) => {
     return new Promise((resolve) => {
       let a = 0
@@ -211,17 +446,37 @@ const fetchImage = async (uri,pos) => {
       reader.readAsDataURL(blob);
     })
   }
- 
+  const getData = () => { // When scrolling we set data source with more data.
 
+    if( allm.current.length !== 0 && somemessages.length < allm.current.length ){
+        setOffset(offset + 1);
+        setsomemessages(allm.current.slice(0,offset*num ))
+        //Alert.alert(allm.current[0].text)
+         //We changed dataSource.
+    }
+
+};
+  useEffect(()=> { //Here we setting our data source on first open.
+
+    if(somemessages.length < messages.length){  
+        if(offset == 1){
+            setsomemessages(messages.slice(0,offset*initialLoadNumber ))
+        }      
+    }
+
+}, []); 
 useEffect(() => {
   
   hasAndroidPermission()
-  currentconv.current=id
+  
   check.current=newchat
   console.log(check.current)
- //StatusBar.setBackgroundColor("red")
+  //StatusBar.setBackgroundColor("red")
+  //SystemNavigationBar.setNavigationColor("red")
 
   return ()=>{
+    
+    //StatusBar.setBackgroundColor("black")
     cam.current=false
   }
 
@@ -324,21 +579,12 @@ const compose = Gesture.Simultaneous(
 
 
 
-if(mpeop){
-  if(na.id===mpeop.sender?.id){
-    //me="sender"
-other= mpeop.receiver.name
-otherid= mpeop.receiver.id
-  }else {
-    //me="receiver"
-    other= mpeop.sender?.name
-    otherid= mpeop.sender?.id
-  }
-} 
-/* function groupedDays(messages) {
+
+function groupedDays(messages) {
   return messages.reduce((acc, el) => {
     //console.log(el)
-    const messageDay = new Date(el.createdAt).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"})
+    const messageDay = new Date(el.createdAt).toDateString()
+    console.log(messageDay,78)
     if (acc[messageDay]) {
       return { ...acc, [messageDay]: acc[messageDay].concat([el]) };
     }
@@ -355,19 +601,20 @@ function generateItems(messages) {
       (x, y) => new Date(y.createdAt) - new Date(x.createdAt)
     );
 const d = new ShortUniqueId({ length: 10 })
-    return acc.concat([...sortedMessages,{ type: 'day',date,_id:d() }]);
+    return acc.concat([...sortedMessages,{ type: 'day',date:new Date(date),_id:d() }]);
   }, []);
   return items;
-} */
+}
 
 
 
 
 async function getmessages(){
-  const mess = await AsyncStorage.getItem(currentconv.current)
-
+  //const mess = await AsyncStorage.getItem(currentconv.current)
+  const mess =storage.getString(currentconv.current)
   if(mess){
   allm.current=JSON.parse(mess)
+  setmessages(allm.current)
   let m = JSON.parse(mess).slice(0,20)
   
    /*  function groupedDays1(messages) {
@@ -391,7 +638,7 @@ async function getmessages(){
 
 
       //dispatch( setmessages(m))
-      setmessages(JSON.parse(mess).slice(0,20))
+      //setmessages(JSON.parse(mess).slice(0,20))
       
    
     //console.log(JSON.parse(mess).slice(0,2))
@@ -430,8 +677,11 @@ console.log(12)
     //dispatch(setmessages(rev))
    
     allm.current=rev 
+    setmessages(rev)
+    setsomemessages(rev.slice(0,initialLoadNumber))
    // messageRef.current=res.data.slice(0,20)
-   await AsyncStorage.setItem(currentconv.current,JSON.stringify(rev))
+   storage.set(currentconv.current,JSON.stringify(rev))
+   //await AsyncStorage.setItem(currentconv.current,JSON.stringify(rev))
     //const obj = {[up.cid]: res.data}
    
  }).catch((err)=>{
@@ -465,17 +715,29 @@ async function setnewmessages(){
 
 const imageUrl = "https://images.pexels.com/photos/994605/pexels-photo-994605.jpeg?auto=compress&cs=tinysrgb&w=2726&h=2047&dpr=1"
 async function all(){
-  let a = {date:new Date(Date.now()).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"}),type:"day",_id:d()}
+  let a = {date:new Date(Date.now()),type:"day",_id:d()}
   let b = [a]
   if(messages.length===0){
     today.current=true
     allm.current=[a]
-    await AsyncStorage.setItem(currentconv.current,JSON.stringify(b))
+    storage.set(currentconv.current,JSON.stringify(b))
+    //await AsyncStorage.setItem(currentconv.current,JSON.stringify(b))
     setmessages([a])
+
   }else{
- let m = await AsyncStorage.getItem(currentconv.current)
+  let m =   storage.getString(currentconv.current)
+ //let m = await AsyncStorage.getItem(currentconv.current)
   if(m){
+
     allm.current= JSON.parse(m)
+    let x=[]
+    allm.current.filter((item,i)=>{
+      if(item.type!==undefined){
+        x.push(i)
+      }
+    })
+   console.log(x,585858)
+    setheadersarr(x.reverse())
     //console.log(allm.current,554)
   }
   }
@@ -499,7 +761,7 @@ async function all(){
   }, [stat]) */
 
   useEffect(() => { 
-    const keyboardDidShowListener = Keyboard.addListener(
+   /*  const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
       (e) => {
         key.value=e.endCoordinates.height
@@ -522,7 +784,7 @@ async function all(){
         })
       }
     );
-
+ */
 
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
@@ -541,10 +803,11 @@ async function all(){
     
   return ()=>{
     
-    keyboardDidHideListener.remove();
-    keyboardDidShowListener.remove();
+   /*  keyboardDidHideListener.remove();
+    keyboardDidShowListener.remove(); */
 //dispatch(setmessages([]))
     setmessages([])
+    setsomemessages([])
     currentconv.current=null
     today.current=false
 backHandler.remove()
@@ -564,10 +827,74 @@ setinp(true)
 
 
 }, [img]) */
+function ne(e){
+setfocus(false)
+currentindex.current=0
+indexes.current=[]
+let text = e.trim()
+let x= allm.current.filter((item,i)=>{
+ if(item.text?.toLowerCase().includes(text.toLowerCase())){
+  indexes.current.push(i)
+  return item
+ }
+  })
+  if(indexes.current.length!==0){
+    /* if(somemessages.length<190){
+      setsomemessages(allm.current)
+    } */
+
+setTimeout(() => {
+  scroll.current.scrollToIndex({
+    animated: false,
+    index: indexes.current[0],
+    viewOffset:0,
+    viewPosition: 0
+  })
+  scroll.current.scrollToIndex({
+    animated: false,
+    index: indexes.current[0],
+    viewOffset:0,
+    viewPosition: 0
+  })
+}, 0);
+     
+
+    
+  }else{
+setsearchvisibility(true)
+setTimeout(() => {
+  hideDialog()
+}, 1000);
+  }
+  
+  //console.log(x,indexes,55555)
+  /* function doSetTimeout(i) {
+    setTimeout(() => {
+      console.log("2")
+      scroll.current.scrollToIndex({
+        animated: true,
+        index: i,
+        viewOffset:0,
+        viewPosition: 0
+      })
+    }, 1000);
+  }
+  for (let i = 0; i < indexes.length; i++) {
+    doSetTimeout(indexes[i])
+  } */
+
+
+}
+
+
 async function sendTextMessage(media1){
+  setcompleted(false)
+  //animate.current?.prepareForLayoutAnimationRender()
+  //LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
   console.log(currentconv.current,state.userName)
   inputT.current.clear()
   let x = input.current
+  input.current=null
   if(x && x !=="" || media1 ){
     if(media1){
 
@@ -581,6 +908,7 @@ async function sendTextMessage(media1){
     let newmessage={
       _id:date,
       sender:na.id,
+      senderName:state.userName,
       receiver:otherid,
       conversationid:currentconv.current,
       text:x,
@@ -593,26 +921,29 @@ async function sendTextMessage(media1){
 
    
     if(today.current===false){
-      console.log(12)
+
       
-      let a = {date:new Date(Date.now()).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"}),type:"day",_id:d()}
+      let a = {date:new Date(Date.now()),type:"day",_id:d()}
       let x = allm.current.find((e)=>{
     if(e.type!==undefined){
        return e
 
     }
       })
-      if(x?.date===a.date){
+      if(new Date(x?.date).toDateString() === new Date(a.date).toDateString()){
      
        allm.current=[newmessage,...allm.current]        
        setmessages((e)=>[newmessage,...e])
+       setsomemessages((e)=>[newmessage,...e])
+
        //settext(null)
        today.current=true
       }else{
-        
 
         //Alert.alert(x.date)
         setmessages((e)=>[newmessage,a,...e])
+        setsomemessages((e)=>[newmessage,a,...e])
+
         //settext(null)
         allm.current=[newmessage,a,...allm.current]
         console.log(allm.current,555)
@@ -626,24 +957,30 @@ async function sendTextMessage(media1){
     }else{
       
       setmessages((e)=>[newmessage,...e])
+      setsomemessages((e)=>[newmessage,...e])
+
       //settext(null)
       allm.current=[newmessage,...allm.current]
       
 
     }
+    setmenu(true)
+    
     try {
-      await AsyncStorage.setItem(currentconv.current,JSON.stringify(allm.current))
+      storage.set(currentconv.current,JSON.stringify(allm.current))
+      //await AsyncStorage.setItem(currentconv.current,JSON.stringify(allm.current))
       if(check.current===true){
         let a= [...state.mpeop,mpeop]
         authContext.setmpeop(a)
         socket.current.emit("newconversationonline",otherid,other,JSON.stringify(mpeop),JSON.stringify(newmessage),notid)
-        await AsyncStorage.setItem("mpeop",JSON.stringify(a))
+        storage.set("mpeop",JSON.stringify(a))
+        //await AsyncStorage.setItem("mpeop",JSON.stringify(a))
         check.current=false
     
   
       }else{
   
-        socket.current.emit("send",newmessage)
+        socket.current.emit("send",JSON.stringify(newmessage),notid)
         await axios.post(`${prt}/messages`,newmessage).then(()=>{
           console.log("gg")
         }).catch((e)=>{
@@ -656,7 +993,7 @@ async function sendTextMessage(media1){
   
 
 
-input.current=null
+
 
 
   
@@ -664,15 +1001,39 @@ input.current=null
     console.log("nol")
   }
   console.log(text)
+  return  setcompleted(true)
 }
 
 
 useEffect(()=>{
+  if(messages.length>=150){
+    console.log("45454545")
+    setTimeout(() => {
+      
+      /* scroll.current.scrollToIndex({
+        animated: false,
+        index: 195,
+        viewOffset:0,
+        viewPosition: 0
+      }) */
+    }, 2000);
+    
+    
+
+  }
+  
+  console.log(somemessages.length,757575)
 if(focus===true){
   setTimeout(() => {
     
-    scroll.current.scrollTo({y:0,animated:true})
+
+   
+    //scroll.current.scrollTo({y:0,animated:true})
   }, 0);
+ /*  setTimeout(() => {
+    setOffset(1)
+    //setsomemessages(messages.slice(0,40 ))
+  }, 3000); */
 
 }
 //  setfocus(false)
@@ -750,7 +1111,7 @@ console.log(e)
    const ges = Gesture.Exclusive(gesture,g)
    let last_time_scroll_completed=0
    let old_offset=0
-   let offset
+
    const maskElementPosition = useAnimatedStyle(() => {
     return {
       transform: [{rotate:"180deg"},{ translateY: -scrollY.value }],
@@ -760,10 +1121,10 @@ console.log(e)
 
 
   //const keyboard1 = useAnimatedKeyboard({isStatusBarTranslucentAndroid:true});
-  const translateStyle = useAnimatedStyle(() => {
+  const slidesticky = useAnimatedStyle(() => {
     return {
       //marginBottom:keyboard.value ? -keyboard.value:0
-      transform: [{ translateY: keyboard.value }],
+      transform: [{ translateY: stickydatestyle.value}],
     };
   });
   const kstyle = useAnimatedStyle(() => {
@@ -778,6 +1139,23 @@ console.log(e)
      marginTop:st.value
     };
   });
+  let conf={duration:500}
+  const fadestyle = useAnimatedStyle(() => {
+    return {
+     opacity:op1.value
+    };
+  });
+  const fadestyle1 = useAnimatedStyle(() => {
+    return {
+     opacity:op2.value
+    };
+  });
+  
+  const fadestyle2 = useAnimatedStyle(() => {
+    return {
+     opacity:op3.value
+    };
+  })
 
   function lay(e){
 
@@ -787,6 +1165,7 @@ console.log(e)
    
   }
 async function choose(){
+  menuopens.current=true
   await launchImageLibrary({
   mediaType:"photo",
   maxHeight:1280,
@@ -795,126 +1174,550 @@ async function choose(){
   includeBase64:true,
   assetRepresentationMode:"current",
 }).then((e)=>{
-  console.log(e.assets[0].uri)
+
+  
   sendTextMessage(`data:image/jpeg;base64,${e.assets[0].base64}`)
 //sendTextMessage(e.assets[0].base64)
 
+}).catch(()=>{
+
 })
 
 }
 
+const openMenu = () => setIsVisiblem(true);
+
+  const closeMenu = () => setIsVisiblem(false);
+
+function toggle(e){
+  if(e.trim().length===0){
+    setmenu(true)
+    
+  }else{
+
+    setmenu(false)
+  }
+  setchanging(e)
+  input.current=e
+}
+const onViewableItemsChanged = ({ viewableItems }) => {
+  
+    if (viewableItems && viewableItems.length) {
+      const lastItem = viewableItems.pop();
+      if (lastItem && lastItem.item) {
+        let m =null
+        if(lastItem.item.type){
+          m=lastItem.item.date
+         
+  
+         }else{
+          m=lastItem.item.createdAt
+          
+         }
+         let now = new Date(Date.now())
+    let t
+    if(new Date(m).getFullYear()===now.getFullYear()){
+      switch(now.getDate()-new Date(m).getDate()){
+        case 0:
+         t="Bugün"
+        break
+        case 1:
+          t="Dün"
+        break
+        default:
+          t= new Date(m).toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"})
+      }
+    }else{
+      console.log(12)
+      t=new Date(m).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"})
+  
+    }
+    
+       setstickydate(t)        
+       }
+     }
+  }
+ 
+    
+    
+  
+  
 
 
+const viewabilityConfig = { itemVisiblePercentThreshold:30,waitForInteraction:false,minimumViewTime:0 };
 
+const viewabilityConfigCallbackPairs = useRef([
+  { viewabilityConfig, onViewableItemsChanged },
+]);
+function updateheader({ viewableItems, changed }){
+ 
+  if (viewableItems && viewableItems.length) {
+    const lastItem = viewableItems.pop();
+    if (lastItem && lastItem.item) {
+      let m =null
+      if(lastItem.item.type){
+        m=lastItem.item.date
+       
 
+       }else{
+        m=lastItem.item.createdAt
+        
+       }
+       let now = new Date(Date.now())
+  let t
+  if(new Date(m).getFullYear()===now.getFullYear()){
+    switch(now.getDate()-new Date(m).getDate()){
+      case 0:
+       t="Bugün"
+      break
+      case 1:
+        t="Dün"
+      break
+      default:
+        t= new Date(m).toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"})
+    }
+  }else{
+    console.log(12)
+    t=new Date(m).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"})
+
+  }
+  console.log(new Date(m).getFullYear(),now.getFullYear())
+  setstickydate(t)
+      
+     }
+   }
+
+}
+
+const keyExtractor = useCallback((item,index) => `${item._id}`, []);
+function hideDialog(){
+  setsearchvisibility(false)
+}
      return (
     <GestureDetector gesture={gesture}>
 
-    <Animated.View    onLayout={(e)=>{
-   
-    }} style={[animatedStyle1,{flex:1,backgroundColor:"black",flexDirection:"column"}]}>
+      <Animated.View    onLayout={(e)=>{
+            
+              }} style={[animatedStyle1,{flex:1,backgroundColor:"#141414",flexDirection:"column",justifyContent:"space-between"}]}>
+                <Portal>
+          <Dialog visible={searchvisibility} onDismiss={hideDialog} style={{paddingVertical:5,marginHorizontal:40,justifyContent:"center",alignItems:"center",backgroundColor:"#6538c6"}}>
+            
+            <Dialog.Content style={{}}>
+              <Text style={{color:"white",fontWeight:"300",fontSize:23/fontScale}} variant="bodyMedium">Mesaj Bulunamadı</Text>
+            </Dialog.Content>
+          </Dialog>
+        </Portal>
+                <Animated.View  style={[slidesticky,{position:"absolute",width:"100%",zIndex:1,justifyContent:"flex-start",alignItems:"center"}]}>
+                  <Text style={{backgroundColor:"#252525",padding:5,borderRadius:10,fontSize:15/fontScale,fontWeight:"300",color:"white"}}>{stickydate}</Text>
+                </Animated.View>
+            
+                <View style={{ marginTop:as,flexDirection: "row", height: 75, backgroundColor: "#141414", justifyContent: "space-between", alignItems: "center" ,zIndex:1}}>
+                     {!searchmode ?  <><View style={{ flexDirection: "row", alignItems: "center" }}>
+               <IconButton icon={"arrow-left"} size={30} iconColor='white' style={{ margin: 0 }} onPress={() => {
+                 navigation.goBack()
+               } }>
+
+               </IconButton>
+               <LinearGradient start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} colors={online && inchats ? ["green", "green"] : online ? ['#21D4FD', '#B721FF'] : ["#141414", "#141414"]} style={{ width: 68, height: 68, borderRadius: 35, justifyContent: "center", alignItems: "center", marginRight: 5 }}>
+
+                 {pp ? <Image style={{ height: 60, width: 60, marginHorizontal: 5, borderRadius: 70, resizeMode: "cover" }} source={{ uri: pp }} /> : <User style={{ color: "#6538c6" }} width={60} height={60} />}
+               </LinearGradient>
+               <Text style={{ color: "white" }} onPress={() => Alert.alert(currentconv.current)}>{other}</Text>
+
+             </View><View style={{ flexDirection: "row", alignItems: "center" }}>
+             <IconButton icon={"draw"} size={30} iconColor='white' rippleColor={"grey"} style={{ margin: 0 }} onPress={() => {
+                   console.log("ol")
+                   /* setstat(true)
+                   setTimeout(() => {
+                     setstat(false)
+                   }, 1500); */
+                   inputT.current.blur()
+                   navigation.navigate("Draw")
+                 } }>
 
 
-      <View style={{ paddingTop:StatusBar.currentHeight,flexDirection: "row", height: 75+as, backgroundColor: "gold", justifyContent: "space-between", alignItems: "center" ,zIndex:1}}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Text style={{}} >--</Text>
-          {pp       &&    <Image style={{ height: 65, width: 65, backgroundColor: "red", marginHorizontal: 5, borderRadius: 70, resizeMode: "cover" }} source={{ uri: pp }} />
-}
-          <Text onPress={()=>Alert.alert(currentconv.current)} >{other}</Text>
+                 </IconButton>
+                 <IconButton icon={"video"} size={30} iconColor='white' rippleColor={"grey"} style={{ margin: 0 }} onPress={() => {
+                   console.log("ol")
+                   /* setstat(true)
+                   setTimeout(() => {
+                     setstat(false)
+                   }, 1500); */
+                   inputT.current.blur()
+                   navigation.navigate("Video", { convid: id, otherid: otherid, notid: notid })
+                 } }>
 
 
-        </View>
-        <View>
-          <TouchableOpacity style={{ backgroundColor: "red", padding: 20,flex:1}} onPress={() => {
-            console.log("ol")
-           /* setstat(true)
-           setTimeout(() => {
-            setstat(false)
-           }, 1500); */
-            navigation.navigate("Video",{convid:id,otherid:otherid,notid:notid})
-          } }>
-
-            <Text>
-              ARA
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-<Animated.ScrollView
-layout={Layout.easing(Easing.elastic())}
-        overScrollMode="always"
-          ref={scroll}
-          scrollEventThrottle={250}
-          style={[{ paddingBottom:10,flexGrow:1,zIndex: 1,transform: [{rotate:"180deg"}]}]}
-        >
-        {
-          messages?.map((c,i)=>{
-        
-            return <Mess fontscale={fontScale} messages={c} rr={rr} setstat={setstat} allmess={messages} key={c._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={i} pd={st}/>
-       
-          })
-        }
-        </Animated.ScrollView>
-        
-        
-
-       
-<Animated.View layout={Layout.easing(Easing.elastic())} style={[{flexDirection:"row",alignItems:"center",backgroundColor:"blue",padding:5}]} >
-  <TextInput 
-  //onKeyPress={foc}
-  //onPressIn={foc}
-  ref={inputT}
-onPressOut={()=>{
-  //inputT.current.blur()
-}}
-//showSoftInputOnFocus={false}
-  //showSoftInputOnFocus={inp}
-  onFocus={()=>setfocus(true)}
-  onChangeText={(e)=>{
-   
-
-      input.current=e
-
-   
-  }}
-  multiline={true}
-  cursorColor={"blue"}
-  style={{backgroundColor:"red",width:"100%",borderRadius:16,padding:3,paddingVertical:7,fontSize:23/fontScale}}/>
-<TouchableOpacity style={{height:40,backgroundColor:"blue",position:"absolute",right:10,width:50,borderRadius:10}} onPress={()=>sendTextMessage()}/>
-<TouchableOpacity style={{height:40,backgroundColor:"blue",position:"absolute",right:65,width:50,borderRadius:10}} onPress={async()=>{/* await launchImageLibrary({
-  mediaType:"photo",
-  maxHeight:1280,
-  maxWidth:720,
-  quality:1,
-  includeBase64:true,
-  assetRepresentationMode:"current",
-}).then((e)=>{
-
-  //console.log(e.assets[0])
-})
- */
-inputT.current.blur()
-navigation.navigate("Takephoto")
-Orientation.lockToPortrait()
-cam.current=true
-setcamopen(true)
-//await resizeImage("1")
-
-}
+                 </IconButton>
+                 <IconButton icon={"phone"} size={25} iconColor='white' rippleColor={"grey"} style={{ margin: 0 }} onPress={() => {
+                   console.log("ol")
+                   /* setstat(true)
+                   setTimeout(() => {
+                     setstat(false)
+                   }, 1500); */
+                   
+                   inputT.current.blur()
+                   navigation.navigate("Audio", { convid: id, otherid: otherid, notid: notid, other: other })
+                 } }>
 
 
-}/>
-<TouchableOpacity style={{height:40,backgroundColor:"blue",position:"absolute",right:120,width:50,borderRadius:10}} onPress={async()=>{
-choose()
-}
+                 </IconButton>
+                 <IconButton icon={"dots-vertical"} size={30} iconColor='white' rippleColor={"grey"} style={{ margin: 0 }} onPress={() => {
+                   console.log("ol")
+                   /* setstat(true)
+                   setTimeout(() => {
+                     setstat(false)
+                   }, 1500); */
+                 
+                   
+                   setchatoptions(true)
+
+                 } }>
 
 
-}/>
+                 </IconButton>
+               </View></> :<View style={{ flexDirection: "row", alignItems: "center" }}>
+               <IconButton icon={"arrow-left"} size={30} iconColor='white' style={{ margin: 0 }} onPress={() => {
+                 navigation.goBack()
+                } }>
 
-</Animated.View>
+               </IconButton>
+                 <Ti 
+                 onSubmitEditing = {(event) => ne(event.nativeEvent.text)}
+                 cursorColor={"white"}
+                 placeholder='Mesajlarda ara'
+                 placeholderTextColor={'rgba(255, 255, 255, 0.5)'}
+                 style={{color:"white",backgroundColor:"#252525",flex:1,fontWeight:"300",borderRadius:16,paddingHorizontal:10,marginHorizontal:5,fontSize:20/fontScale}}
 
-    </Animated.View>
+                 ></Ti>
+                <IconButton icon={"chevron-up"} size={30} iconColor='white' style={{ margin: 0 }} onPress={() => {
+                 if(indexes.current.length!==0){
+                  if(indexes.current[currentindex.current+1]){
+                    if(somemessages.length<indexes.current[currentindex.current+1]){
+                      setsomemessages(allm.current.slice(0,indexes.current[currentindex.current+1]))
+                    }
+                    currentindex.current+=1
+                    scroll.current.scrollToIndex({
+                      animated: true,
+                      index: indexes.current[currentindex.current],
+                      viewOffset:0,
+                      viewPosition: 0
+                    })
+
+                  }
+                 
+                  
+                 }
+                } }>
+
+               </IconButton>
+               <IconButton icon={"chevron-down"} size={30} iconColor='white' style={{ margin: 0 }} onPress={() => {
+                if(indexes.current.length!==0){
+                  if(currentindex.current!==0){
+                    currentindex.current-=1
+
+                  }
+                  scroll.current.scrollToIndex({
+                    animated: true,
+                    index: indexes.current[currentindex.current],
+                    viewOffset:0,
+                    viewPosition: 0
+                  })
+                  
+                 }
+                } }>
+
+               </IconButton>
+               
+                </View>} 
+                
+                </View>
+{/* <View style={{flex:1}}>
+                <BigList data={somemessages}
+                onEndReached={getData} 
+                ref={scroll}
+                itemHeight={50}
+                inverted
+                scrollEnabled
+                keyExtractor={item => item._id}
+                style={[{ backgroundColor:"black",paddingBottom:10,zIndex: 1}]}
+                 renderItem={({item,index}) =>  <Mess item={item} fontscale={fontScale} messages={item} rr={rr} setstat={setstat} allmess={messages} key={item._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={index} pd={st}/>
+                      }
+               />
+               </View> */}
+               
+
+              {/* <View style={{flex:1}}><FlatList
+                    extraData={messages}
+                    onEndReachedThreshold ={offset < 10 ? (offset*(offset == 1 ? 2 : 2)):20}   //While you scolling the offset number and your data number will increases.So endReached will be triggered earlier because our data will be too many
+                    onEndReached = {getData} 
+                    onTouchEnd={()=>{
+                      setsearchmode(false)
+                      setzi(true)
+                    }}
+                    removeClippedSubviews = {true} 
+                    scrollEnabled
+                    keyboardShouldPersistTaps="handled"
+                    initialNumToRender={20}
+                    maxToRenderPerBatch={num*2}
+                    updateCellsBatchingPeriod={num}
+                    
+                    
+                    data={messages}
+                    renderItem={({item,index}) =>  <Mess fontscale={fontScale} inp={inputT} messages={item} rr={rr} setstat={setstat} allmess={messages} key={item._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={index} pd={st}/>
+                    }
+                   
+                    keyExtractor={item => item._id}
+                      pagingEnabled
+                      showsVerticalScrollIndicator={false}
+                      viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+                      onScrollToIndexFailed={(info) => {
+                        scroll.current.scrollToOffset({ offset: info.averageItemLength * info.index, animated: false });
+                        setTimeout(() => {
+                          if (messages.length !== 0 && scroll.current !== null) {
+                            scroll.current.scrollToIndex({ index: info.index, animated: false });
+                          }
+                        }, 100);
+
+
+                       console.log("ıkık")
+                        const wait = new Promise(resolve => setTimeout(resolve, 0));
+                        wait.then(() => {
+                          scroll.current.scrollToEnd({
+                            animated:false
+                          })
+                          scroll.current.scrollToIndex({
+                            animated: false,
+                            index: info.index,
+                            viewOffset:0,
+                            viewPosition: 0
+                          })
+                        })
+                      }
+                    }
+                    
+                 
+                      overScrollMode="always"
+                        ref={scroll}
+                        contentContainerStyle={{flexGrow:1}}
+                        style={[{ backgroundColor:"black",paddingBottom:10,flex:1,zIndex: 0,transform: [{rotate:"180deg"}]}]}
+                      >
+  
+              </FlatList></View>  */}
+ {messages.length!==0 && <Animated.View ref={animate} style={{flex:1,backgroundColor:"black"}} >
+ 
+                <FlashList
+             
+                onScrollBeginDrag={()=>{
+                  if(stickydatevalue.current==false){
+                    stickydatestyle.value=withDelay(250,withTiming(75+as))
+stickydatevalue.current=true
+                  }
+                }}
+                onScroll ={ (event) => {
+                  
+                  clearTimeout(ssd)
+                  console.log(stickydatevalue.current)
+                 
+                 
+                  
+                   ssd= setTimeout(() => {
+                    stickydatevalue.current=false
+                    stickydatestyle.value=withTiming(as,{duration:300},(e)=>{
+                    if(e){
+                      //runOnJS(setstickydate)(null)
+                      //setstickydate(null)
+                    }
+
+                    })
+                      
+                    }, 1000);
+
+                  
+                  
+                }}
+                onScrollEndDrag={()=>{
+                 
+                }}
+                onTouchEnd={()=>{
+                  setsearchmode(false)
+                }}
+               //While you scolling the offset number and your data number will increases.So endReached will be triggered earlier because our data will be too man
+                
+                inverted
+                keyboardShouldPersistTaps="handled"
+                initialScrollIndex={0}
+                //onEndReached={getData}
+                onEndReachedThreshold ={offset < 10 ? (offset*(offset == 1 ? 2 : 2)):20} 
+                scrollEnabled
+                
+                
+                 data={messages}
+                 renderItem={({item,index,target}) => {
+                
+                    return <Mess toph={toph} fontscale={fontScale} offset={offsets} inp={inputT} id={id} typing={typings}  messages={item} rr={rr} setstat={setstat} allmess={messages} key={item._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={index} pd={st} />
+
+                 
+                  
+                 
+                 }
+                }
+                 keyExtractor={keyExtractor}
+                  showsVerticalScrollIndicator={false}
+                  overScrollMode="always"
+                    ref={scroll}
+                    
+                    
+                    estimatedItemSize={messages.length}
+                   
+                  viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+                  
+                    contentContainerStyle={{paddingTop: typings?55:0,paddingBottom:0}}
+                    //style={[{ backgroundColor:"black",paddingBottom:10,zIndex: 1,transform: [{rotate:"180deg"}]}]}
+                  >
+                  
+                </FlashList>
+                {
+                  typings ===true ?<View   style={[{position:"absolute",flexDirection:"row",bottom:0,zIndex:1,alignItems:"center",paddingHorizontal:5,paddingVertical:0,backgroundColor:"transparent",justifyContent:"flex-start"}]}>
+                 <Animated.View entering={SlideInDown} exiting={SlideOutDown} style={{marginVertical:20,backgroundColor:"#292929",borderRadius:25,height:"100%",justifyContent:"center",alignItems:"center",paddingHorizontal:10,flexDirection:"row"}}>
+                 <Animated.View style={[fadestyle,{justifyContent:"center",alignItems:"center"}]}>
+                  <Avatar.Icon icon="circle-small" size={12} color='transparent'  style={{backgroundColor:"white",marginRight:7}}></Avatar.Icon>
+                 </Animated.View>
+
+                 <Animated.View style={[fadestyle1]}>
+                  <Avatar.Icon icon="circle-small" size={12} color='transparent'  style={{backgroundColor:"white",marginRight:7}}></Avatar.Icon>
+                 </Animated.View>
+                 <Animated.View style={[fadestyle2]}>
+                  <Avatar.Icon icon="circle-small" size={12} color='transparent'  style={{backgroundColor:"white"}}></Avatar.Icon>
+                 </Animated.View>
+
+                 </Animated.View>
+                  
+                  </View>:null
+                }
+                
+                </Animated.View>}
+                
+                {/* <ScrollView  ref={scroll}
+                
+                onEnded={getData}
+                style={{flex:1,transform:[{rotate:"180deg"}]}}>
+
+                
+                  {
+                    somemessages?.map((c,i)=>{
+                  
+                      return <Mess fontscale={fontScale} messages={c} rr={rr} setstat={setstat} allmess={somemessages} key={c._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={i} pd={st}/>
+                
+                    })
+                  }
+                   </ScrollView> */}
+                
+                {zi? <Animated.View //layout={Layout.easing(Easing.elastic())} 
+                  style={[{flexDirection:"row",alignItems:"center",height:60,backgroundColor:"black",paddingBottom:5,paddingHorizontal:3,marginTop:0,}]} >
+                    <Ti 
+                    //onKeyPress={foc}
+                    //onPressIn={foc}
+                    ref={inputT}
+                  onPressOut={()=>{
+                    //inputT.current.blur()
+                  }}
+                  //showSoftInputOnFocus={false}
+                    //showSoftInputOnFocus={inp}
+                    onFocus={()=>setfocus(true)}
+                    onChangeText={(e)=>{
+                        toggle(e)
+
+                        
+
+                    
+                    }}
+                    
+                    underlineColor='transparent'
+                    activeUnderlineColor='transparent'
+                    multiline={true}
+                    placeholder='Mesaj'
+                    placeholderTextColor={'rgba(255, 255, 255, 0.5)'}
+                    cursorColor={"grey"}
+                    selectionColor={"grey"}
+                    contentStyle={{width:"100%",height:"100%"}}
+                    style={{color:"white",backgroundColor:"#141414",width:"100%",fontWeight:"300",borderRadius:16,paddingHorizontal:10,height:50,fontSize:20/fontScale}}/>
+                    {<IconButton disabled ={ completed===true ? false:true} icon={menu? "image":"send"} iconColor='white' size={27}  style={{height:45,backgroundColor:"black",position:"absolute",right:2,bottom:3.5,width:45,borderRadius:45}} onPress={()=>
+                    {
+                      if(menu){
+                        setIsVisiblem(true)
+                    }else{
+                      
+                        sendTextMessage()
+                    }
+                    }
+                    }/>}
+                    <Menu
+                        style={{}}
+                        contentStyle={{backgroundColor:"#141414",bottom:35,width:70,alignItems:"center",paddingVertical:-10}}
+                        visible={visiblem}
+                        onDismiss={closeMenu}
+                        anchorPosition="top"
+                        anchor={
+                        <Button style={{}} onPress={openMenu}>Show menu</Button>}
+                        >
+                          <IconButton
+                          icon={"camera"}
+                          iconColor='white'
+                          style={{width:"100%",borderRadius:2,marginBottom:-5}}
+                          onPress={()=>{
+                            closeMenu()
+                            inputT.current.blur()
+                            navigation.navigate("Takephoto")
+                            Orientation.lockToPortrait()
+                            cam.current=true
+                            setcamopen(true)}}
+                          >
+
+                          </IconButton>
+                          <IconButton
+                          icon={"image"}
+                          iconColor='white'
+                          style={{width:"100%",borderRadius:2}}
+                          onPress={()=>{
+                          
+                          closeMenu()
+                          choose()
+
+
+                          }}
+                          >
+
+                          </IconButton>
+                          
+                        
+                    </Menu>
+                    <Menu
+                        style={{top:80+StatusBar.currentHeight}}
+                        contentStyle={{backgroundColor:"#141414",alignItems:"center",paddingVertical:-10}}
+                        visible={chatoptions}
+                        onDismiss={()=>{setchatoptions(false)}}
+                        anchorPosition="top"
+                        anchor={
+                        <Button style={{}} onPress={openMenu}>Show menu</Button>}
+                        >
+                          <Menu.Item  onPress={() => {setsearchmode(true)
+                          inputT.current.blur()
+                          setzi(false)
+                          setchatoptions(false)
+                          }} theme={{ colors: { onSurfaceVariant: 'red' } }} rippleColor={"grey"} title="Mesajlarda ara" style={{paddingRight:10}} titleStyle={{color:"white"}} />
+                          <Menu.Item  onPress={() => {deleteconv(mpeop,other,otherid,notid,state,me,authContext,prt)
+                          navigation.goBack()
+                          }} theme={{ colors: { onSurfaceVariant: 'red' } }} rippleColor={"grey"} title="Sohbeti Sil" style={{paddingRight:10}} titleStyle={{color:"white"}} />
+                          
+
+                        
+                    </Menu>
+
+                </Animated.View>:null}
+                
+                
+  </Animated.View>
 </GestureDetector>
 
   
@@ -923,7 +1726,7 @@ choose()
 const style= StyleSheet.create({
     body:{
       backgroundColor:"black",
-        zIndex:0,
+        zIndex:1,
         flexDirection:"column",
         justifyContent:"space-between",
         flex:1,
