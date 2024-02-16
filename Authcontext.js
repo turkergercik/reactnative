@@ -31,8 +31,8 @@ export function Auth({children,socketi}){
     const messageRef =useRef()
     const rr =useRef(false)
     const offlinepause = useRef({audio:true,video:true}) 
-    let server ="http://192.168.1.102:3001"
-    //const server = "https://smartifier.onrender.com"
+    //let server ="http://192.168.1.104:3001"
+    const server = "https://smartifier.onrender.com"
     const socket = useRef(null)
     const socketbackup = useRef(null)
     const rtcm =useRef()
@@ -44,11 +44,15 @@ export function Auth({children,socketi}){
     const check = useRef(null)
     const [img, setimg] = useState(null);
     const [onlines, setonlines] = useState([]);
+    const [invc, setinvc] = useState(false);
+    const [lastmesssages, setlastmesssages] = useState(null);
     const [inchat, setinchat] = useState([]);
     const [typing, settyping] = useState([]);
     const [navbar, setnavbar] = useState(n);
+    const [trigger, settrigger] = useState(false);
     const [soc, setsoc] = useState(null);
     const cam = useRef(false)
+    const incall = useRef(false)
     const[camopen,setcamopen]=useState(false)
     const[calli,setcalli]=useState(false)
     const [auth, setauth] = useState(null)
@@ -146,7 +150,7 @@ export function Auth({children,socketi}){
         []
       );
 return(
-<AuthContext.Provider value={{currentother,typing,settyping,inchat,setinchat,onlines,setonlines,menuopens,somemessages,setsomemessages,socketbackup,cam,setsoc,soc,camopen,setcamopen,ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
+<AuthContext.Provider value={{settrigger,trigger,incall,invc,setinvc,lastmesssages,setlastmesssages,currentother,typing,settyping,inchat,setinchat,onlines,setonlines,menuopens,somemessages,setsomemessages,socketbackup,cam,setsoc,soc,camopen,setcamopen,ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
 {children}
 </AuthContext.Provider>
 )

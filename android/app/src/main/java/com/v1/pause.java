@@ -1,40 +1,31 @@
 package com.v1;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.KeyguardManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
-import android.os.PowerManager;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import java.util.Map;
-import java.util.HashMap;
-
+import  com.v1.CustomVideocall;
 public class pause extends ReactContextBaseJavaModule {
     private ReactContext mReactContext;
     pause(ReactApplicationContext context) {
@@ -55,9 +46,8 @@ public class pause extends ReactContextBaseJavaModule {
 
 
 
-
-        //activity.moveTaskToBack(true);
-        activity.finishAffinity();
+        activity.moveTaskToBack(true);
+        //activity.finishAffinity();
     }
     @ReactMethod
     public void disNotCh() {
@@ -110,6 +100,74 @@ public class pause extends ReactContextBaseJavaModule {
             });
 
         }
+
+
+
+    }
+    @ReactMethod
+    public void startcall(String call) {
+        /*<item name="android:windowDisablePreview">true</item>
+        <item name="android:colorBackground">#ff00ff</item>
+        */
+        //,String id,String otherid,String notid,String call1,String info,Boolean fromapp
+        Intent intent=null;
+        if(call.equals("Video")){
+             intent = new Intent(MainActivity.activity,CustomVideocall.class);
+
+        }else{
+             intent = new Intent(MainActivity.activity,CustomAudiocall.class);
+
+        }
+        //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        /*intent.putExtra("convid",id);
+        intent.putExtra("otherid",otherid);
+        intent.putExtra("notid",notid);
+        intent.putExtra("call1",call1);
+        intent.putExtra("info",info);
+        intent.putExtra("fromapp",fromapp);*/
+        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+        MainActivity.activity.startActivity(intent);
+
+
+    }
+    @ReactMethod
+    public void stopcall(String call) {
+        /*<item name="android:windowDisablePreview">true</item>
+        <item name="android:colorBackground">#ff00ff</item>
+        */
+        if(call.equals("Video")){
+            CustomVideocall.activity.moveTaskToBack(true);
+
+        }else{
+            CustomAudiocall.activity.moveTaskToBack(true);
+
+        }
+
+
+
+    }
+    @ReactMethod
+    public void stopcall1(String call) {
+        /*<item name="android:windowDisablePreview">true</item>
+        <item name="android:colorBackground">#ff00ff</item>
+        */
+        if(call.equals("Video")){
+            CustomVideocall.activity.finish();
+
+        }else{
+            CustomAudiocall.activity.finish();
+
+        }
+
+
+    }
+    @ReactMethod
+    public void getcurrent(Promise promise) {
+        /*<item name="android:windowDisablePreview">true</item>
+        <item name="android:colorBackground">#ff00ff</item>
+        */
+        promise.resolve(CustomVideocall.active);
 
 
 

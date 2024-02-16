@@ -8,6 +8,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import com.facebook.react.ReactActivity;
@@ -50,19 +51,20 @@ public class MainActivity extends ReactActivity {
    * Returns the name of the main component registered from JavaScript. This is used to schedule
    * rendering of the component.
    */
+  public static Activity activity;
   public Handler handler = new Handler();
     public Runnable r=null;
-
    @RequiresApi(api = Build.VERSION_CODES.P)
    @Override
   protected void onCreate(Bundle savedInstanceState) {
        //SplashScreen.show(this);  // here
     super.onCreate(null);
-       Window w =  getWindow();
+    activity=this;
+       /*Window w =  getWindow();
        w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON|
                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD|
                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED|
-               WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+               WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);*/
        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
            Intent intent = new Intent();
            String packageName = getPackageName();
@@ -76,15 +78,16 @@ public class MainActivity extends ReactActivity {
        /*IntentFilter filter = new IntentFilter();
        filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
        registerReceiver(new NetworkChangeReceiver(), filter);*/
+
        stars();
        getWindow().getDecorView().setBackgroundColor(Color.BLACK);
        String manufacturer = "xiaomi";
-       if (manufacturer.equalsIgnoreCase(android.os.Build.MANUFACTURER)) {
+      /* if (manufacturer.equalsIgnoreCase(android.os.Build.MANUFACTURER)) {
            //this will open auto start screen where user can enable permission for your app
            Intent intent1 = new Intent();
            intent1.setComponent(new ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"));
            startActivity(intent1);
-       }
+       }*/
 
 
    }
@@ -112,6 +115,11 @@ public class MainActivity extends ReactActivity {
 
 
     }
+    public void onNewIntent(Intent intent) {
+
+        super.onNewIntent(intent);
+    }
+
   @Override
   protected String getMainComponentName() {
       return NotifeeApiModule.getMainComponent("v1");
@@ -122,6 +130,7 @@ public class MainActivity extends ReactActivity {
    * DefaultReactActivityDelegate} which allows you to easily enable Fabric and Concurrent React
    * (aka React 18) with two boolean flags.
    */
+
   @Override
   protected ReactActivityDelegate createReactActivityDelegate() {
     return new DefaultReactActivityDelegate(
@@ -133,6 +142,7 @@ public class MainActivity extends ReactActivity {
         DefaultNewArchitectureEntryPoint.getConcurrentReactEnabled() // concurrentRootEnabled
         );
   }
+
   @Override
     public void onDestroy() {
       Log.d("hey","son");
@@ -140,6 +150,7 @@ stars();
         super.onDestroy();
 
     }
+
 
   }
 

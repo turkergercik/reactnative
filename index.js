@@ -29,7 +29,12 @@ import ImagePicker from 'react-native-image-crop-picker';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import Callvideoscreen from './screens/callvideoscreen';
 import Callaudioscreen from './screens/callaudioscreen';
+import CustomVideocall from './screens/customvideocall';
+import CustomAudiocall from './screens/customaudiocall';
+import { Provider } from 'react-redux';
+import store from './redux/store';
 const {pause}=NativeModules
+
 //example
 let x=false
 let call=null
@@ -37,8 +42,8 @@ let id=null
 let socket=null
 let call1=null
 let callnotif=null
-let server ="http://192.168.102:3001"
-//let server ="https://smartifier.onrender.com"
+//let server ="http://192.168.104:3001"
+let server ="https://smartifier.onrender.com"
 const d =new ShortUniqueId({length:10})
 //const {state,authContext,img,remoteRTCMessage,seticall,icall,currentconv,setmessages,istoday,stat,setstat} = useAuthorization()
 
@@ -55,7 +60,7 @@ async function bootstrap() {
 
 
 
-RNCallKeep.addEventListener('answerCall', async({ callUUID }) => {
+/* RNCallKeep.addEventListener('answerCall', async({ callUUID }) => {
   x=true
   RNCallKeep.removeEventListener("endCall")
   RNCallKeep.removeEventListener("answerCall")
@@ -89,7 +94,7 @@ RNCallKeep.addEventListener('endCall', async()=>{
   } 
   
     console.log("merhaba")
-  });
+  }); */
 bootstrap()
 let nav
 let messages=[]
@@ -174,20 +179,21 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
         //console.log([...detail.notification.android.style.messages])
         console.log(detail.notification.data)
         mess=[...mess,{text:detail.input,person:{
-          name:"me"
+          name:"me",
+          
         },
         timestamp:Date.now(),
         }, 
         ]
         
         await notifee.displayNotification({
-          id:"4",
-          body:"45",
-          title: 'Messages list',
+          id:detail.notification.id,
+          body:detail.input,
+          title: detail.input,
           
           android: {
             autoCancel:false,
-            onlyAlertOnce:true,
+            onlyAlertOnce:false,
             ongoing:true,
             category:AndroidCategory.MESSAGE,
             flags:[AndroidFlags.FLAG_NO_CLEAR],
@@ -195,7 +201,7 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
             style: {
               type: AndroidStyle.MESSAGING,
               person:{
-                name:"message.senderName"
+                name:"me"
               },
               messages:[...mess]
               
@@ -212,6 +218,27 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
             ],
           },
         });
+        let id = storage.getString("id")
+        let name = storage.getString("name")
+        let date=Date.now()
+        let newmessage={
+          _id:date,
+          sender:id,
+          senderName:name,
+          receiver:detail.notification.data.sender,
+          conversationid:detail.notification.data.conversationid,
+          text:detail.input,
+          createdAt:date,
+        }
+        console.log(newmessage,444444)
+        
+        /* let caller = await AsyncStorage.getItem("caller")
+        let caller1 = JSON.parse(caller) */
+       
+        socket=io(server)
+        socket.emit("no",id)
+        socket.emit("send",JSON.stringify(newmessage),null)
+        socket.emit("dc1",id)
        //await notifee.cancelNotification(detail.notification.id);
 
     }else if(type === EventType.ACTION_PRESS && detail.pressAction.id === 'accept'){
@@ -336,7 +363,7 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
     }
   }else if(remoteMessage.data.title==="endCall"){
     //call1=false
-    pause.pause()
+    //pause.pause()
   }
  
     console.log("kıkı")
@@ -468,15 +495,15 @@ console.log(mess,7777777)
           }) */
             
         
-          /* await notifee.displayNotification({
-            id:"4",
-            body:"45",
-            title: 'Messages list',
-            
+          await notifee.displayNotification({
+            id:message.conversationid,
+            body:message.text,
+            title:message.text,
+            data:message,
             android: {
-              //largeIcon:ppr,
+              
               autoCancel:false,
-              onlyAlertOnce:true,
+              onlyAlertOnce:false,
               ongoing:false,
               category:AndroidCategory.MESSAGE,
               color:"red",
@@ -489,13 +516,10 @@ console.log(mess,7777777)
                 person:{
                   
                   name:message.senderName,
-                  icon:ppr!==null? ppr:null,
-                  id:"7"
+                  
+                
                 },
-                messages:[{
-                  text:"s",
-                  timestamp:Date.now()
-                }]
+                messages:[...mess]
                 
               },
               actions: [
@@ -514,45 +538,8 @@ console.log(mess,7777777)
                 },
               ],
             },
-          }); */
-          await notifee.displayNotification({
-            id:"12",
-            title: '(21) 1234-1234',
-            body: 'Incoming call',
-            android: {
-                channelId: 'my-channel',
-                category: AndroidCategory.CALL,
-                visibility: AndroidVisibility.PUBLIC,
-                importance: AndroidImportance.HIGH,
-                timestamp: Date.now(),
-                showTimestamp: true,
-                pressAction:{
-                  id: "bok",
-                  launchActivityFlags:[AndroidLaunchActivityFlag.SINGLE_TOP],
-                  launchActivity: 'com.v1.CustomActivity2',
-                  mainComponent:"Callscreen"
-        
-                },
-                actions: [{
-                    title: "Accept",
-                    pressAction: {
-                        id: "bok",
-                        launchActivity: 'com.v1.CustomActivity2',
-                    }
-                }, {
-                    title: 'Decline',
-                    pressAction: {
-                        id: "reject",
-                    }
-                }],
-                fullScreenAction: {
-                    id: 'bok',
-                    launchActivity: 'com.v1.CustomActivity2',
-                },
-            },
-        
-        
-          })
+          });
+          
   }else if(remoteMessage.data.title==="newconversation"){
     //let all1=await AsyncStorage.getItem("mpeop")
     let all1=storage.getString("mpeop")
@@ -633,10 +620,13 @@ storage.set("mpeop",JSON.stringify(all))
     //startApp()
     pause.islocked().then(async(e)=>{
       let type=null
+      let comp = null
       if(remoteMessage.data.type==="Video"){
-        type="com.v1.CustomActivity"
+        type="com.v1.CustomVideocall"
+        comp="custom"
       }else{
-        type="com.v1.CustomActivity2"
+        type="com.v1.CustomAudiocall"
+        comp="custom2"
       }
         call1=true
         
@@ -644,7 +634,7 @@ storage.set("mpeop",JSON.stringify(all))
        /* AsyncStorage.setItem("caller",JSON.stringify({otherid:call.callerId,call:"notification",info:call.sdp,callerName:call.callerName})).then((e)=>{
         pause.play()
        }) */ 
-      let a= storage.set("caller",JSON.stringify({otherid:call.callerId,call:"notification",info:call.sdp,callerName:call.callerName,type:remoteMessage.data.type}))
+      storage.set("calldetails",JSON.stringify({callerId:call.callerId,call:"notification",sdp:call.sdp,callerName:call.callerName,type:remoteMessage.data.type,entrytype:"notification"}))
       
         //pause.play()
       
@@ -711,17 +701,17 @@ storage.set("mpeop",JSON.stringify(all))
               importance: AndroidImportance.HIGH,
               timestamp: Date.now(),
               showTimestamp: true,
-              pressAction:{
+              /* pressAction:{
                 id: "bok",
                 launchActivityFlags:[AndroidLaunchActivityFlag.EXCLUDE_FROM_RECENTS,AndroidLaunchActivityFlag.SINGLE_TOP],
                 launchActivity: type,
       
-              },
+              }, */
               actions: [{
                 title: '<p style="color: #0b8705;"><b>Kabul et</b></p>',
                 pressAction: {
                       id: "bok",
-                      launchActivityFlags:[AndroidLaunchActivityFlag.EXCLUDE_FROM_RECENTS,AndroidLaunchActivityFlag.NEW_TASK],
+                      launchActivityFlags:[],
                       launchActivity: type,
                   }
               }, {
@@ -732,8 +722,10 @@ storage.set("mpeop",JSON.stringify(all))
                   }
               }],
               fullScreenAction: {
-                  id: 'bok',
-                  launchActivity: type,
+                  id: "defau",
+                  launchActivityFlags:[],
+                  launchActivity:type,
+
               },
           },
       
@@ -757,7 +749,7 @@ storage.set("mpeop",JSON.stringify(all))
 
 }else if(remoteMessage.data.title==="endCall"){
   //call1=false
-  pause.islocked().then(async(e)=>{
+  /* pause.islocked().then(async(e)=>{
     if(e===true){
       call1=true
       pause.pause()
@@ -767,7 +759,7 @@ storage.set("mpeop",JSON.stringify(all))
       callnotif=false
      
     }
-  })
+  }) */
   
 }
   
@@ -861,49 +853,20 @@ call1=false
    
     return(
     <Auth >
+      <Provider store={store}>
 <GestureHandlerRootView style={{flex:1}}>
   <PaperProvider>
       <App setfirst={setfirst} server={server} call={call} call2={call1} socket1={socket} />
       </PaperProvider>
       </GestureHandlerRootView>
+      </Provider>
       </Auth>
 
     )
     
   }
-//HeadlessCheck()
-/* function CustomComponent() {
-  return (
-    <View style={{flex:1,justifyContent:"center",
-    alignItems:"center",backgrounColor:"red"}}>
-      <Text>A custom component</Text>
-    </View>
-  );
-} */
-/* let MyHeadlessTask = async (event) => {
-  // Get task id from event {}:
-  let taskId = event.taskId;
-  let isTimeout = event.timeout;  // <-- true when your background-time has expired.
-  if (isTimeout) {
-    // This task has exceeded its allowed running-time.
-    // You must stop what you're doing immediately finish(taskId)
-    console.log('[BackgroundFetch] Headless TIMEOUT:', taskId);
-    BackgroundFetch.finish(taskId);
-    return;
-  }
-  console.log('[BackgroundFetch HeadlessTask] start: ', taskId);
 
-  // Perform an example HTTP request.
-  // Important:  await asychronous tasks when using HeadlessJS.
-  let response = await fetch('https://reactnative.dev/movies.json');
-  let responseJson = await response.json();
-  console.log('[BackgroundFetch HeadlessTask] response: ', responseJson);
 
-  // Required:  Signal to native code that your task is complete.
-  // If you don't do this, your app could be terminated and/or assigned
-  // battery-blame for consuming too much time in background.
-  BackgroundFetch.finish(taskId);
-} */
 const Backtest = async(w)=>{
   
 if(w.first===true){
@@ -1020,7 +983,9 @@ importance:AndroidImportance.HIGH
 AppRegistry.registerHeadlessTask("SomeTaskName",()=>Backtest)
 AppRegistry.registerComponent('custom',()=> Callvideoscreen);
 AppRegistry.registerComponent('custom2',()=> Callaudioscreen);
-AppRegistry.registerComponent(appName, () => HeadlessCheck );
+AppRegistry.registerComponent('customvc',()=> CustomVideocall);
+AppRegistry.registerComponent('customac',()=> CustomAudiocall);
+AppRegistry.registerComponent(appName, () => HeadlessCheck);
 /* AppRegistry.registerComponent('custom-component', () => CustomComponent); */
 //AppRegistry.registerComponent(App, () => HeadlessCheck);
 /* AppRegistry.registerHeadlessTask('RNCallKeepBackgroundMessage', () => ({ name, callUUID, handle }) => {

@@ -135,6 +135,7 @@ if(res.data==="updated"){
 
 
 const Chatid = ({route,navigation,setmesnotif}) => {
+  
 const windowSize =messages?.length > 50 ? messages.length/4 : 21;
 let num =100 
 let initialLoadNumber = 40 
@@ -217,7 +218,7 @@ const images = [
     uri: "https://images.unsplash.com/photo-1569569970363-df7b6160d111",
   },
 ];
-const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,server,state,socket,setstat,rr,stat,authContext,check,allm,setss,cam,setimg,img,setsomemessages,somemessages,menuopens,onlines,inchat,typing,currentother}=useAuthorization()
+const{auth,navbar,setauth,messages,setmessages,currentconv,messageRef,userid,server,state,socket,setstat,rr,stat,authContext,check,allm,setss,cam,setimg,img,setsomemessages,somemessages,menuopens,onlines,inchat,typing,currentother,setlastmesssages,incall}=useAuthorization()
 let prt= server
 let na={
   id:state.userId
@@ -236,6 +237,7 @@ let na={
   let newchat= route?.params?.newchat
   let re= route?.params?.re
   let pos= route?.params?.pos
+
   if(mpeop){
     if(na.id===mpeop.sender?.id){
       me="sender"
@@ -320,6 +322,7 @@ let na={
 
   //const deletefunc = deleteconv(mpeop,other,otherid,notid.current,state,authContext,prt)
   useEffect(()=>{
+    
     let f =onlines?.find((item)=>
       
        item.userId===otherid
@@ -328,7 +331,7 @@ let na={
      )
      if(f){
        setonline(true)
-       socket.current.emit("inchat",otherid,currentconv.current)
+       socket.current?.emit("inchat",otherid,currentconv.current)
      }else{
        setonline(false)
      }
@@ -373,10 +376,10 @@ let na={
    },[inchat])
 
    useEffect(()=>{
-    socket.current.emit("inchat",otherid,id)
+    socket.current?.emit("inchat",otherid,id)
     return ()=>{
   
-      socket.current.emit("outchat",otherid,id)
+      socket.current?.emit("outchat",otherid,id)
       
     }
    },[])
@@ -385,7 +388,7 @@ let na={
     if(changing!==false){
       if(starttype.current===false){
         console.log("o78")
-        socket.current.emit("typing",otherid,id)
+        socket.current?.emit("typing",otherid,id)
         
       }
       starttype.current=true
@@ -394,7 +397,7 @@ let na={
      clearTimeout(x)
      x= setTimeout(() => {
       console.log("o77")
-      socket.current.emit("nottyping",otherid,id)
+      socket.current?.emit("nottyping",otherid,id)
       starttype.current=false
     }, 1000);
   }
@@ -786,12 +789,7 @@ async function all(){
     );
  */
 
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      ()=>{
-        //setmesnotif(false)
-      }
-    );
+    
     console.log(messa)
     if(messa===false){
       console.log("e")
@@ -810,7 +808,7 @@ async function all(){
     setsomemessages([])
     currentconv.current=null
     today.current=false
-backHandler.remove()
+
   }
 }, [])
 async function foc(){
@@ -888,7 +886,8 @@ setTimeout(() => {
 
 
 async function sendTextMessage(media1){
-  setcompleted(false)
+  /* setcompleted(false)
+  settext(null) */
   //animate.current?.prepareForLayoutAnimationRender()
   //LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
   console.log(currentconv.current,state.userName)
@@ -934,7 +933,7 @@ async function sendTextMessage(media1){
      
        allm.current=[newmessage,...allm.current]        
        setmessages((e)=>[newmessage,...e])
-       setsomemessages((e)=>[newmessage,...e])
+       //setsomemessages((e)=>[newmessage,...e])
 
        //settext(null)
        today.current=true
@@ -942,7 +941,7 @@ async function sendTextMessage(media1){
 
         //Alert.alert(x.date)
         setmessages((e)=>[newmessage,a,...e])
-        setsomemessages((e)=>[newmessage,a,...e])
+        //setsomemessages((e)=>[newmessage,a,...e])
 
         //settext(null)
         allm.current=[newmessage,a,...allm.current]
@@ -957,7 +956,7 @@ async function sendTextMessage(media1){
     }else{
       
       setmessages((e)=>[newmessage,...e])
-      setsomemessages((e)=>[newmessage,...e])
+      //setsomemessages((e)=>[newmessage,...e])
 
       //settext(null)
       allm.current=[newmessage,...allm.current]
@@ -966,30 +965,34 @@ async function sendTextMessage(media1){
     }
     setmenu(true)
     
-    try {
-      storage.set(currentconv.current,JSON.stringify(allm.current))
-      //await AsyncStorage.setItem(currentconv.current,JSON.stringify(allm.current))
-      if(check.current===true){
-        let a= [...state.mpeop,mpeop]
-        authContext.setmpeop(a)
-        socket.current.emit("newconversationonline",otherid,other,JSON.stringify(mpeop),JSON.stringify(newmessage),notid)
-        storage.set("mpeop",JSON.stringify(a))
-        //await AsyncStorage.setItem("mpeop",JSON.stringify(a))
-        check.current=false
-    
-  
-      }else{
-  
-        socket.current.emit("send",JSON.stringify(newmessage),notid)
-        await axios.post(`${prt}/messages`,newmessage).then(()=>{
-          console.log("gg")
-        }).catch((e)=>{
-          console.log(e)
-        })
-      }
-    } catch (error) {
+    setTimeout(async() => {
+      try {
+        storage.set(currentconv.current,JSON.stringify(allm.current))
+        setlastmesssages(currentconv.current)
+        //await AsyncStorage.setItem(currentconv.current,JSON.stringify(allm.current))
+        if(check.current===true){
+          let a= [...state.mpeop,mpeop]
+          authContext.setmpeop(a)
+          socket.current?.emit("newconversationonline",otherid,other,JSON.stringify(mpeop),JSON.stringify(newmessage),notid)
+          storage.set("mpeop",JSON.stringify(a))
+          //await AsyncStorage.setItem("mpeop",JSON.stringify(a))
+          check.current=false
       
-    }
+    
+        }else{
+    
+          socket.current?.emit("send",JSON.stringify(newmessage),notid)
+          await axios.post(`${prt}/messages`,newmessage).then(()=>{
+            console.log("gg")
+          }).catch((e)=>{
+            console.log(e)
+          })
+        }
+  
+      } catch (error) {
+        
+      }
+    }, 0);
   
 
 
@@ -1001,7 +1004,7 @@ async function sendTextMessage(media1){
     console.log("nol")
   }
   console.log(text)
-  return  setcompleted(true)
+   setcompleted(true)
 }
 
 
@@ -1190,13 +1193,13 @@ const openMenu = () => setIsVisiblem(true);
   const closeMenu = () => setIsVisiblem(false);
 
 function toggle(e){
-  if(e.trim().length===0){
+ /*  if(e.trim().length===0){
     setmenu(true)
     
   }else{
 
     setmenu(false)
-  }
+  } */
   setchanging(e)
   input.current=e
 }
@@ -1331,9 +1334,14 @@ function hideDialog(){
                    setTimeout(() => {
                      setstat(false)
                    }, 1500); */
+                   /* storage.set("callnotif",JSON.stringify(true))
+         socket.current.emit("dc1",state.userId)
+         socket.current=null */
+         /* menuopens.current=true */
+                  
                    inputT.current.blur()
-                   navigation.navigate("Draw")
-                 } }>
+                   navigation.navigate("Draw",{otherid:otherid})
+                 }}>
 
 
                  </IconButton>
@@ -1344,7 +1352,14 @@ function hideDialog(){
                      setstat(false)
                    }, 1500); */
                    inputT.current.blur()
-                   navigation.navigate("Video", { convid: id, otherid: otherid, notid: notid })
+                   menuopens.current=true
+                   storage.set("svc","true")
+                  storage.set("calldetails",JSON.stringify({convid:id,otherid:otherid,notid:notid,entrytype:"call",callerName:other,type:"Video"}))
+                   pause.startcall(
+                     "Video"
+                    )
+                    //id,  otherid,  notid , "call",null,true
+                   //navigation.navigate("Video", { convid: id, otherid: otherid, notid: notid })
                  } }>
 
 
@@ -1357,7 +1372,13 @@ function hideDialog(){
                    }, 1500); */
                    
                    inputT.current.blur()
-                   navigation.navigate("Audio", { convid: id, otherid: otherid, notid: notid, other: other })
+                   storage.set("svc","true")
+                  storage.set("calldetails",JSON.stringify({convid:id,otherid:otherid,notid:notid,entrytype:"call",callerName:other,type:"Audio"}))
+                   pause.startcall(
+                     "Audio"
+                    )
+                    //id,  otherid,  notid , "call",null,true
+                   //navigation.navigate("Audio", { convid: id, otherid: otherid, notid: notid, other: other })
                  } }>
 
 
@@ -1626,13 +1647,15 @@ stickydatevalue.current=true
                     //showSoftInputOnFocus={inp}
                     onFocus={()=>setfocus(true)}
                     onChangeText={(e)=>{
-                        toggle(e)
+                      //settext(e)
+                      //input.current=e
+                      toggle(e)
 
                         
 
                     
                     }}
-                    
+                    value={text}
                     underlineColor='transparent'
                     activeUnderlineColor='transparent'
                     multiline={true}
@@ -1642,16 +1665,36 @@ stickydatevalue.current=true
                     selectionColor={"grey"}
                     contentStyle={{width:"100%",height:"100%"}}
                     style={{color:"white",backgroundColor:"#141414",width:"100%",fontWeight:"300",borderRadius:16,paddingHorizontal:10,height:50,fontSize:20/fontScale}}/>
-                    {<IconButton disabled ={ completed===true ? false:true} icon={menu? "image":"send"} iconColor='white' size={27}  style={{height:45,backgroundColor:"black",position:"absolute",right:2,bottom:3.5,width:45,borderRadius:45}} onPress={()=>
+                    <IconButton  icon={ "image"} iconColor='white' size={27}  style={{height:45,backgroundColor:"black",position:"absolute",right:2,bottom:3.5,width:45,borderRadius:45}} onPress={()=>
+                    setIsVisiblem(true)
+                    }/>
+                    <IconButton  icon={"send"} iconColor='white' size={27}  style={{height:45,backgroundColor:"black",position:"absolute",right:54,bottom:3.5,width:45,borderRadius:45}} onPress={()=>
                     {
-                      if(menu){
-                        setIsVisiblem(true)
-                    }else{
-                      
+                      //settext(null)
+                      /* let date=Date.now()
+                      console.log(date)
+                    
+                        let newmessage={
+                          _id:date,
+                          sender:na.id,
+                          senderName:state.userName,
+                          receiver:otherid,
+                          conversationid:currentconv.current,
+                          text:"7778",
+                          createdAt:date,
+                        }
+                        setmessages((e)=>[newmessage,...e]) */
+                      setTimeout(() => {
+                        
                         sendTextMessage()
+                        
+                      },0);
+                    
                     }
-                    }
-                    }/>}
+                        
+                    
+                    
+                    }/>
                     <Menu
                         style={{}}
                         contentStyle={{backgroundColor:"#141414",bottom:35,width:70,alignItems:"center",paddingVertical:-10}}

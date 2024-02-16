@@ -1,4 +1,4 @@
-import { View,Text,TouchableOpacity, PermissionsAndroid,Alert ,Image,StatusBar,Dimensions,useWindowDimensions,TouchableNativeFeedback,NativeModules, BackHandler, AppRegistry} from 'react-native'
+import { View,Text,TouchableOpacity,NativeEventEmitter, AppState,PermissionsAndroid,Alert ,Image,StatusBar,Dimensions,useWindowDimensions,TouchableNativeFeedback,NativeModules, BackHandler} from 'react-native'
 import React,{useContext,useState,useRef,useEffect} from 'react'
 import { UserContext } from '../components/context'
 import { useAuthorization } from '../Authcontext';
@@ -25,23 +25,47 @@ import { Gesture, GestureDetector, GestureHandlerRootView,ScrollView } from 'rea
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storage } from '../Authcontext';
 import { IconButton } from 'react-native-paper';
-import { io } from 'socket.io-client';
+import { Socket, io } from 'socket.io-client';
+import { useDispatch, useSelector } from "react-redux";
+import { setcurrentconv } from '../redux/counter';
 import notifee from '@notifee/react-native';
+import { Platform } from 'react-native';
+
+let server ="http://192.168.1.104:3001"
 
 console.log(storage)
 const {pause:df}=NativeModules
+const enterpip=NativeModules.pipmodule
 const as= StatusBar.currentHeight
-let x
-let server ="https://smartifier.onrender.com"
-//let server ="http://192.168.1.105:3001"
-export default function Callvideoscreen({navigation,route,soc1}) {
-  const { height, width } = useWindowDimensions();
-    const socket=useRef(null)
+let x=false
+let otherid=null
+  let notid=null
+  let info=null
+  let convid=null
+  let entrytype=null
+  let callerName=null
+export default function CustomVideocall({navigation,route,soc1,someValue,fromapp}) {
+  /* const count = useSelector((state) => state.counter.currentconv)
+  const dispatch = useDispatch() */
+
+  
+
+
+  const { height, width } = useWindowDimensions()
+  
+  //let otheridcall.current =null//`${otherid}-call`
+  let otheridcall= useRef(null)
+  let isNotification= useRef(false)
+    const socket =useRef(null)
+    const mystream =useRef(null)
     const [type, setType] = useState('JOIN');
     const [pause, setpause] = useState(false);
+    const [inPipMode, setinPipMode] = useState(false);
     const [pauselocal, setpauselocal] = useState(false);
     const [mute, setmute] = useState(false);
     const [mutelocal, setmutelocal] = useState(false);
+    const [pp, setpp] = useState(null);
+    const [callscreen, setcallscreen] = useState(false);
     const tY= useSharedValue(0)
     const ty1= useSharedValue(0)
     const translationY= useSharedValue(0)
@@ -51,21 +75,14 @@ export default function Callvideoscreen({navigation,route,soc1}) {
     const yc= useSharedValue(0)
     const xc= useSharedValue(0)
     const [mainscreen, setmainscreen] = useState(true);
-    const [callscreen, setcallscreen] = useState(true);
-    const [callername,setcallername]=useState(null)
-    const [calltype,setcalltype]=useState(null)
+    const remoteRTCMessage=useRef(null)
+    const fullscreen=useRef(null)
     const mains=useRef(true)
     const p = useRef(false)
     const menu = useRef(false)
     const pl = useRef(true)
     const m = useRef(false)
-    let otherid =useRef(null)
-    const remoteRTCMessage = useRef(null)
     const v = useRef(null)
-    let state={
-      userId:storage.getString("id")
-    }
-    console.log(state,111222)
     const peerConnection = useRef(
         new RTCPeerConnection({
           iceServers: [
@@ -88,27 +105,68 @@ export default function Callvideoscreen({navigation,route,soc1}) {
     const [localStream, setlocalStream] = useState(null);
     const ls = useRef(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [callerName, setcallerName] = useState(null);
   const [back, setBack] = useState(false);
   const [isFront, setisFront] = useState(true);
   const [t, sett] = useState(false);
-  const tx = useSharedValue(-width)
   const video =useRef(null)
   const audio =useRef(null)
-  const fullscreen =useRef(null)
   const check =useRef([])
+  const pipmode =useRef(false)
   const che =useRef(false)
+  const btn =useRef(null)
+  const tx = useSharedValue(-width)
   let streams
+  let state={
+    userId:storage.getString("id"),
+    userName:storage.getString("name")
+  }
   const callnotif = useRef(null);  
-    let call1= route?.params?.call
-    //let otherid= null
-    let convid = route?.params?.convid
+    
+    //let otheridcall.current= route?.params?.otheridcall.current
+    
     let sdp = route?.params?.sdp
-    let notid= route?.params?.notid
+    
     let caller= route?.params?.caller
-  let info = route?.params?.info
   
+
+ 
+  useEffect(() => {
+
+    const eventEmitter = new NativeEventEmitter(NativeModules.pipmodule);
+    let eventListener = eventEmitter.addListener('PIP_MODE_CHANGE', event => {
+      
+      console.log(event)
+     setinPipMode(event)
+    });
+    let eventListener2 = eventEmitter.addListener('onhint', event => {
+      
+      if(inPipMode){
+      
+        
+
+      }else{
+        if(menu.current===false){
+
+          togglemenu()
+        }
+        setTimeout(() => {
+          enterpip.enterPipMode(400, 700)
+          
+        }, 0);
+        
+      }
+    });
+
+    // Removes the listener once unmounted
+    return () => {
+     
+      eventListener.remove();
+      eventListener2.remove();
+    };
+  }, []);
 useEffect(()=>{
-  
+ 
 translationX.value=0
 translationY.value=0
 finalX.value=0
@@ -117,12 +175,73 @@ xc.value=0
 yc.value=0
 
 },[height])
-const st = useAnimatedStyle(()=>{
-  return{
-    transform:[{translateX:tx.value}]
+
+
+useEffect(()=>{
+
+  const eventEmitter = new NativeEventEmitter(NativeModules.PipAndroidModule);
+  let eventListener = eventEmitter.addListener('declineclick', event => {
     
-  }
-})
+    socket.current.emit("endCall",otheridcall.current,notid)
+    socket.current.emit("endCall",otherid,null)
+    
+      if(inPipMode){
+        df.stopcall("Video")
+
+      }else{
+        
+        df.stopcall1("Video")
+      }
+
+   
+      if(socket.current!==null){
+        a()
+
+      }
+    
+    setTimeout(() => {
+      
+      storage.delete("svc")
+    }, 100);
+    console.log("basıldı") // "someValue"
+  });
+  let eventListener1 = eventEmitter.addListener('backpress', event => {
+    
+   
+      if(inPipMode){
+      
+        
+
+      }else{
+        if(menu.current===false){
+
+          togglemenu()
+        }
+        setTimeout(() => {
+          enterpip.enterPipMode(400, 700)
+          
+        }, 0);
+        
+      }
+
+   
+  });
+  return () => {
+    eventListener.remove();
+    eventListener1.remove();
+  };
+  
+  },[])
+  useEffect(()=>{
+  
+    if(inPipMode){
+
+    }else{
+      
+    }
+    
+    },[inPipMode])
+
 async function hasAndroidPermission() {
     
   const getCheckPermissionPromise = async() => {
@@ -146,9 +265,11 @@ async function hasAndroidPermission() {
         })
   }
   const getRequestPermissionPromise = async() => {
+    //menuopens.current=true
     const x = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA)
     console.log(x,4545)
     const as = await new Promise(resolve =>  setTimeout(async() => {
+      //menuopens.current=true
       const y = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO)
       if (x === "granted" && y === "granted") {
         resolve(true)
@@ -173,32 +294,32 @@ async function hasAndroidPermission() {
 }
 
     useEffect(() => {
-    hasAndroidPermission().then((w)=>{
-    
-     notifee.getInitialNotification().then((e)=>{
-      notifee.cancelNotification("1")
-      let data
-      if(e){
-         data=e.notification.data
-         
-      }else{
-        fullscreen.current=true
-        let ss =storage.getString("caller")
-        let info = JSON.parse(ss)
-         data = info
+    hasAndroidPermission().then(async(e)=>{
+      await notifee.cancelNotification("1")
+      let sc =storage.getString("calldetails")
+  if(sc){
+     let sc1 = JSON.parse(sc)
+     otherid = sc1.otherid
+     convid= sc1.convid
+     notid=sc1.notid
+     sdp =sc1.sdp
+     entrytype = sc1.entrytype
+     
+     if(entrytype==="notification"){
+      remoteRTCMessage.current=sdp
+      setcallscreen(true)
+      otherid=sc1.callerId
+      isNotification.current=true
+      setcallerName(sc1.callerName)
+     }
+     otheridcall.current =`${otherid}-call`
+     console.log(otheridcall.current,otherid)
 
-      }
-    
-      console.log(data)
-      otherid.current=data.callerId
-      setcallername(data.callerName)
-      remoteRTCMessage.current=data.sdp
+  }
 
    
  
-      if(w===true&&state.userId){
-        socket.current=io(server)
-        socket.current?.emit("no",state.userId)
+      if(e===true&& state.userId){
       console.log(socket.current)
      //df.changedcm("shortEdges")
      setTimeout(async() => {
@@ -208,17 +329,20 @@ async function hasAndroidPermission() {
   
       //const callnotif = await AsyncStorage.removeItem("callnotif")
       
-       //SystemNavigationBar.setNavigationColor("transparent","dark")
+      
+       SystemNavigationBar.setNavigationColor("transparent","dark")
       
      }, 350);
       /* InCallManager.start()
       InCallManager.setForceSpeakerphoneOn(true); */
-        if(state.userId){
-          
+        if(state.userId&&socket.current!==undefined){
+          socket.current= io(server)
+          socket.current.emit("no",`${state.userId}-call`)
           console.log(state.userName)
          
         //setcallst(true)
         socket.current.on('callAnswered', async(data) => {
+          
           InCallManager.stopRingtone()
           setType(true)
        che.current=true
@@ -271,29 +395,53 @@ if(data==="video"){
 }
         
         });
-        socket.current.on('endCall', async(data) => {
-          /* check.current=null
-          
-          //socket.current?.emit("endCall",otherid.current,notid)
-          peerConnection.current.close()
-          peerConnection.current=null
-          streams?.getTracks().forEach(
-            track => track.stop()
-        ); 
-        socket.current.close() */
-                    
-                     //AppRegistry.registerComponent("v1",()=>App)
-                     BackHandler.exitApp()
+    socket.current.on("endCall",()=>{
+      console.log(inPipMode,"78")
+      /* if(fromapp){
+        df.stopcall1("Video")
+      
 
-                     if(fullscreen.current===true){
-                       df.pause()
+      }else{
+      } */
+      /* df.stopcall("Video")
+      if(socket.current!==null){
+        a()
 
-                     }
-              
-          
-          
+      } */
+      /* if(fromapp){
+        if(inPipMode){
+          df.stopcall("Video")
+  
+        }else{
+          df.stopcall1("Video")
+        }
+
+      }else{
        
-         });
+      } */
+         if(inPipMode){
+          df.stopcall("Video")
+  
+        }else{
+          df.stopcall1("Video")
+        }
+      if(socket.current!==null){
+        a()
+
+      }
+      /* if(pipmode.current===true){
+        df.stopcall("Video")
+       
+      }else{
+        BackHandler.exitApp()
+      } */
+      setTimeout(() => {
+        
+        storage.delete("svc")
+      }, 100);
+       
+
+    })
         socket.current.on('ICEcandidate', async(data) => {
           let message = data.rtcMessage;
           if (peerConnection.current) {
@@ -307,7 +455,7 @@ if(data==="video"){
                 }),
               )
               .then(data => {
-                
+               
                 //console.log('SUCCESS');
               })
               .catch(err => {
@@ -343,17 +491,30 @@ if(data==="video"){
            //stream.forEach((a)=>{})
            ls.current=stream
             setlocalStream(stream);
+            mystream.current=stream
             console.log(stream)
             
              //peerConnection.current.addStream(stream);
             // setup stream listening
             video.current=peerConnection.current.addTrack(stream.getVideoTracks()[0],stream)
             audio.current=peerConnection.current.addTrack(stream.getAudioTracks()[0],stream)
-            
-            //processAccept()
+            if(entrytype==="incomingcall"){
+                /* let sdp =await AsyncStorage.getItem("sdp")
+                let sdp1=JSON.parse(sdp) 
+                console.log(sdp1) */
+                console.log(sdp,7878)
+                remoteRTCMessage.current=sdp
+                processAccept()
              
-              
+            }else if(entrytype==="notification"){
            
+             // await peerConnection.current.setLocalDescription(null);
+             
+            }else{
+              processCall()
+
+
+            }
           }).catch((e)=>{
             console.log(e)
           })
@@ -372,26 +533,26 @@ if(data==="video"){
                   
                   };
           
-                
-                  
+          
                   peerConnection.current.onicecandidate = async(event)=> {
                     
                       //clearTimeout(timer.current)
                       let sessionDescription
                       if (event.candidate) {
+                     
                        // x+=1
                         
                         let a={
-                          calleeId: otherid.current,
+                          calleeId: otheridcall.current,
                           rtcMessage: {
                             label: event.candidate.sdpMLineIndex,
                             id: event.candidate.sdpMid,
                             candidate: event.candidate.candidate,
                           },
-                         
-                          
+                          call:callnotif.current,
+                          notid:notid,
                           callerId:state.userId,
-                          
+                          callerName:state.userName
                         }
                         check.current=[...check.current,a]
                         
@@ -437,36 +598,54 @@ if(data==="video"){
       navigation.goBack()
     }
   })
-  })
         return () => {
-          clear()
+          if(socket.current!==null){
+            a()
+
+          }
+        
+          
         }
       
       }, []);
 
+function a(){
+  df.changedcm("default")
+          SystemNavigationBar.setNavigationColor("black","light")
+          //StatusBar.setHidden(false)
+          //StatusBar.setTranslucent(true)
+       //StatusBar.setBackgroundColor("yellow")
+          
+          //setType(null)
+          
+          /* offlinepause.current.video=true
+          offlinepause.current.audio=true */
 
-
-function clear(){
-  console.log("selam olur")
-
-  //check.current=null
-  console.log(otherid.current,7574745)
-
-  peerConnection.current?.close()
-  peerConnection.current=null
-  streams?.getTracks().forEach(
-    track => track.stop()
-); 
- socket.current?.emit("dc1",state.userId)
-
+          check.current=null
+          
+          peerConnection.current.close()
+          peerConnection.current=null
+          
+          mystream.current?.getTracks().forEach(
+            track => track.stop()
+        );
+          //socket.current.off('newCall');
+          socket.current.off('callAnswered');
+          socket.current.off('ICEcandidate');
+          socket.current.off('videopaused');
+          socket.current.emit("dc1",`${state.userId}-call`)
+          socket.current=null
 }
+
+
 
 
 
 
 useEffect(()=>{
   if(type===true){
-  sendICEcandidate({calleeId:otherid.current,rtcMessage:check.current})
+  
+  sendICEcandidate({calleeId:otheridcall.current,rtcMessage:check.current})
 
 }
 
@@ -476,12 +655,11 @@ useEffect(()=>{
       
 
       function sendICEcandidate(data) {
-        socket.current?.emit('ICEcandidate', data);
+        socket.current.emit('ICEcandidate', data);
         //check.current=false
       }
     
       async function processCall() {
-
 
         try {
           //callnotif.current=null
@@ -491,7 +669,7 @@ useEffect(()=>{
           await peerConnection.current.setLocalDescription(sessionDescription)
 
         //const sessionDescription =null
-       
+       console.log(notid,777888)
         callnotif.current=sessionDescription
         sendCall({
           callerId:state.userId,
@@ -517,7 +695,7 @@ useEffect(()=>{
         const sessionDescription = await peerConnection.current.createAnswer();
         await peerConnection.current.setLocalDescription(sessionDescription);
         answerCall({
-          callerId: otherid.current,
+          callerId: otheridcall.current,
           rtcMessage: sessionDescription,
         });
        /* return new Promise((resolve, reject) => {
@@ -530,11 +708,11 @@ useEffect(()=>{
       }
     
       function answerCall(data) {
-        socket.current?.emit('answerCall', data);
+        socket.current.emit('answerCall', data);
       }
     
       function sendCall(data) {
-        socket.current?.emit('call', data);
+        socket.current.emit('call', data);
       }
       function switchCamera() {
         if(pauselocal===false){
@@ -550,10 +728,10 @@ useEffect(()=>{
       function toggleCam(){
         console.log("ok")
         if(type===true){
-          socket.current?.emit("videopaused",otherid,"video")
+          socket.current.emit("videopaused",otheridcall.current,"video")
          
         }else{
-  socket.current?.emit("offlinepause",otherid,"video",state.userId)
+  socket.current.emit("offlinepause",otheridcall.current,"video",state.userId)
         }
         if(pl.current===true){
           console.log("1")
@@ -571,10 +749,10 @@ useEffect(()=>{
 
      async function toggleMic(){
       if(type===true){
-        socket.current?.emit("videopaused",otherid,"audio")
+        socket.current.emit("videopaused",otheridcall.current,"audio")
        
       }else{
-socket.current?.emit("offlinepause",otherid,"audio",state.userId)
+socket.current.emit("offlinepause",otheridcall.current,"audio",state.userId)
       }
       if(localStream.getAudioTracks()[0].enabled===true){
         localStream.getAudioTracks()[0].enabled=false
@@ -598,8 +776,9 @@ socket.current?.emit("offlinepause",otherid,"audio",state.userId)
           ty1.value=withTiming(0,{duration:150})
           tY.value=withTiming(0,{duration:150})
           menu.current=false
+          SystemNavigationBar.setNavigationColor("transparent")
           SystemNavigationBar.navigationShow()
-          StatusBar.setHidden(false )
+          StatusBar.setHidden(false)
         }
         
         }
@@ -711,6 +890,12 @@ setmainscreen(true)
           )
        ,-1)
       }
+      const st = useAnimatedStyle(()=>{
+        return{
+          transform:[{translateX:tx.value}]
+          
+        }
+      })
       const style1 = useAnimatedStyle(() => {
         return {
           transform: [{ translateY: tY.value }],
@@ -727,27 +912,46 @@ setmainscreen(true)
         };
       });
       //#FCF5E5
-      return (
-        <>
-        <GestureHandlerRootView style={{flex:1}}>
-        <View style={{flex:1,flexDirection:"column"}}>
-           {pauselocal&&mainscreen || !mainscreen&&pause ?  <View pointerEvents="none" style={{position:"absolute",top:0,bottom:0,right:0,left:0,justifyContent:"center",alignItems:"center",zIndex:1}}>
-                <View style={{backgroundColor:"black",paddingHorizontal:10,borderRadius:10}}>
-                <Text style={{color:"white",fontSize:27,fontWeight:"600"}} >Duraklatıldı</Text>
-    
-                </View>
-                </View>:null}
-              {callscreen ? <Animated.View style={[ts,{width:"100%",height:75+as,left:0,alignItems:"center",backgroundColor:"#141414",position:"absolute",top:0,zIndex:1,flexDirection:"row",paddingTop:as,borderBottomLeftRadius:25,borderBottomRightRadius:25}]}>
+      if (inPipMode) {
+        return (
+          <View style={{backgroundColor:"red",flex:1}} >
+        <RTCView
+        ref={v}
+        mirror={true}
+          objectFit={'cover'}
+          style={{
+           flex:1
+          }}
+          streamURL={remoteStream?.toURL()} />
+          </View>
+        );
+      }
+  return (
+    <GestureHandlerRootView style={{flex:1,flexDirection:"column"}}>
+    <View style={{flex:1,flexDirection:"column"}}>
+       {pauselocal&&mainscreen || !mainscreen&&pause ?  <View pointerEvents="none" style={{position:"absolute",top:0,bottom:0,right:0,left:0,justifyContent:"center",alignItems:"center",zIndex:1}}>
+            <View style={{backgroundColor:"black",paddingHorizontal:10,borderRadius:10}}>
+            <Text style={{color:"white",fontSize:27,fontWeight:"600"}} >Duraklatıldı</Text>
+
+            </View>
+            </View>:null}
+            {callscreen ? <Animated.View style={[ts,{width:"100%",height:75+as,left:0,alignItems:"center",backgroundColor:"#141414",position:"absolute",top:0,zIndex:1,flexDirection:"row",paddingTop:as,borderBottomLeftRadius:25,borderBottomRightRadius:25}]}>
               <View style={{flex:3,justifyContent:"center",alignItems:"center",alignSelf:"center"}}>
       
-      <Animated.Text onLayout={(event)=>lay(event)}  style={[{fontSize:34,fontWeight:"300",color:"white",width:"100%"},st]} >{ `${callername} arıyor ...`} </Animated.Text>
+      <Animated.Text onLayout={(event)=>lay(event)}  style={[{fontSize:34,fontWeight:"300",color:"white",width:"100%"},st]} >{ `${callerName} arıyor ...`} </Animated.Text>
     
       </View>
               </Animated.View>:<Animated.View style={[ts,{width:"100%",height:75+as,left:0,alignItems:"center",backgroundColor:"#141414",position:"absolute",top:0,zIndex:1,flexDirection:"row",paddingTop:as,borderBottomLeftRadius:25,borderBottomRightRadius:25}]}>
              <IconButton icon={"arrow-left"} size={30} iconColor='white' style={{margin:0}} onPress={()=>{
               //menuopens.current=true
-              togglemenu()
-              
+              if(menu.current===false){
+
+                togglemenu()
+              }
+              setTimeout(() => {
+                enterpip.enterPipMode(400, 700)
+                
+              }, 0);
               
              }}>
 
@@ -755,36 +959,73 @@ setmainscreen(true)
           </Animated.View>
               
               }
-              
-    
           
-           {localStream && 
-           
-                <>
-                <View style={{flex:1}}
-                onTouchEnd={togglemenu}
-                >
-                    <RTCView
-                        // onTouchEnd={toggleScreen()}
-                        mirror={isFront ? true:false}
-                        objectFit={'cover'}
-                        style={{ flex: 1 }}
-                        streamURL={mainscreen? localStream.toURL():remoteStream?.toURL()} />
-                </View>
-     {mutelocal&&mainscreen || !mainscreen&&mute  ? <View style={{position:"absolute",bottom:175,right:0,left:0,height:75,justifyContent:"center",alignItems:"center"}}><Text style={{color:"white",fontSize:25,fontWeight:"600"}}>Sessiz</Text></View>:null}
-    
-     <Animated.View style={[style1,{backgroundColor: "#141414",position:"absolute",borderTopLeftRadius:25,borderTopRightRadius:25,flexDirection: "row",height:95+48,bottom:0,right:0,left:0,justifyContent:"center",zIndex:10}]}>
+
+      
+       {localStream && 
+       
+            <>
+            <View style={{flex:1}}
+            onTouchEnd={togglemenu}
+            >
+                <RTCView
+                    // onTouchEnd={toggleScreen()}
+                    mirror={isFront ? true:false}
+                    objectFit={'cover'}
+                    style={{ flex: 1 }}
+                    streamURL={mainscreen? localStream.toURL():remoteStream?.toURL()} />
+            </View>
+ {mutelocal&&mainscreen || !mainscreen&&mute  ? <View style={{position:"absolute",bottom:175,right:0,left:0,height:75,justifyContent:"center",alignItems:"center"}}><Text style={{color:"white",fontSize:25,fontWeight:"600"}}>Sessiz</Text></View>:null}
+
+ <Animated.View style={[style1,{backgroundColor: "#141414",position:"absolute",borderTopLeftRadius:25,borderTopRightRadius:25,flexDirection: "row",height:95+48,bottom:0,right:0,left:0,justifyContent:"center",zIndex:10}]}>
                 {callscreen ?   <Animated.View style={[{flexDirection:"row",justifyContent:"space-evenly",alignItems:"flex-start",flex:1,width:"100%",paddingBottom:0}]}>
           
           <View style={{borderRadius:50,width:100,height:100}}>
           <TouchableNativeFeedback
           onPress={()=>{
-            BackHandler.exitApp()
-            socket.current.emit("endCall",otherid.current,null)
-            if(fullscreen.current===true){
-              df.pause()
-
+            //BackHandler.exitApp()
+            socket.current.emit("endCall",otheridcall.current,null)
+            socket.current.emit("endCall",otherid,null)
+            //BackHandler.exitApp()
+            /* df.stopcall("Video")
+            a() */
+           /*  if(fromapp){
+              df.stopcall1("Video")
+            
+            }else{
+              console.log("78")
+              df.stopcall("Video")
+              a()
+              
+            } */
+            if(inPipMode){
+              df.stopcall("Video")
+      
+            }else{
+              df.stopcall1("Video")
             }
+          if(socket.current!==null){
+            a()
+    
+          }
+            /* if(fromapp){
+              if(inPipMode){
+                df.stopcall("Video")
+        
+              }else{
+                df.stopcall1("Video")
+              }
+             
+            }else{
+              console.log("78")
+              df.stopcall1("Video")
+              a()
+              
+            } */
+            setTimeout(() => {
+      
+              storage.delete("svc")
+            }, 100);
           }}
           background={TouchableNativeFeedback.Ripple("grey",true)}
           >
@@ -798,6 +1039,7 @@ setmainscreen(true)
           <TouchableNativeFeedback
           onPress={()=>{
            setcallscreen(false)
+           
            processAccept()
            
            
@@ -836,25 +1078,52 @@ setmainscreen(true)
                       </TouchableNativeFeedback>
                     </View><View style={{ flex: 1, backgroundColor: "red", textAlign: "center", justifyContent: "center", alignItems: "center" }}>
                         <TouchableNativeFeedback
+                        ref={btn}
                           style={{}}
                           onPress={() => {
-                            BackHandler.exitApp()
-                            socket.current.emit("endCall",otherid.current,null)
-                            if(fullscreen.current===true){
-
-                              /* socket.current?.emit("endCall",otherid.current,notid)
-                              peerConnection.current.close()
-                              peerConnection.current=null
-                              streams?.getTracks().forEach(
-                                track => track.stop()
-                            ); 
-                             socket.current?.emit("dc1",state.userId) */
-                           
+                            
+                            socket.current.emit("endCall",otheridcall.current,null)
+                            socket.current.emit("endCall",otherid,null)
+                            /* if(fromapp){
+                              df.stopcall1("Video")
                               
-                               df.pause()
-                         
-
-                     }
+                      
+                            }else{
+                              df.stopcall("Video")
+                              if(socket.current!==null){
+                                a()
+                      
+                              }
+                            } */
+                            if(inPipMode){
+                              df.stopcall("Video")
+                      
+                            }else{
+                              df.stopcall1("Video")
+                            }
+                          if(socket.current!==null){
+                            a()
+                    
+                          }
+                            /* if(fromapp){
+                              if(inPipMode){
+                                df.stopcall("Video")
+                        
+                              }else{
+                                df.stopcall1("Video")
+                              }
+                      
+                            }else{
+                              df.stopcall("Video")
+                              if(socket.current!==null){
+                                a()
+                      
+                              }
+                            } */
+                            setTimeout(() => {
+      
+                              storage.delete("svc")
+                            }, 100);
                           } }
                           background={TouchableNativeFeedback.Ripple(
                             "grey",
@@ -911,62 +1180,60 @@ setmainscreen(true)
                         </TouchableNativeFeedback>
                       </View></>}            
               </Animated.View></>
-          }
-          
-           {remoteStream &&  
-           
-           <GestureDetector gesture={ges}>
-           <Animated.View style={[{position:"absolute",
-            top:40,
-        right:10,
-        height:250,
-          width:150,
-          borderColor: 'grey',
+      }
+      
+       {remoteStream &&  
        
-          borderWidth: 3.5,
-          borderRadius:12,
-          overflow:"hidden",
-          backgroundColor:"black"
-          },style12]}
-            onTouchEnd={toggleScreen}
-            >
-    <View style={{backgroundColor:"black",flex:1}} >
-            <RTCView
-            ref={v}
-            mirror={true}
-              objectFit={'cover'}
-              style={{
-               flex:1
-              }}
-              streamURL={!mainscreen? localStream.toURL():remoteStream?.toURL()} />
-              </View>
-              {pauselocal===true&&mainscreen===false || pause===true&&mainscreen ?  <View style={{position:"absolute",top:0,bottom:0,right:0,left:0,justifyContent:"center",alignItems:"center",backgroundColor:"black"}}>
-    
-      <Text style={{color:"white"}} >Duraklatıldı</Text>
-    
-      </View>:null}
-    
-    {mutelocal&&!mainscreen || mainscreen&&mute  ? <View style={{position:"absolute",bottom:20,right:0,left:0,height:75,justifyContent:"center",alignItems:"center"}}><Text style={{color:"white"}}>Sessiz</Text></View>:null}
-              </Animated.View></GestureDetector> }
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-          
-          
-        </View>
-        </GestureHandlerRootView>
-        
-        </>
-      )
+       <GestureDetector gesture={ges}>
+       <Animated.View style={[{position:"absolute",
+        top:40,
+    right:10,
+    height:250,
+      width:150,
+      borderColor: 'grey',
+   
+      borderWidth: 3.5,
+      borderRadius:12,
+      overflow:"hidden",
+      backgroundColor:"black"
+      },style12]}
+        onTouchEnd={toggleScreen}
+        >
+<View style={{backgroundColor:"black",flex:1}} >
+        <RTCView
+        ref={v}
+        mirror={true}
+          objectFit={'cover'}
+          style={{
+           flex:1
+          }}
+          streamURL={!mainscreen? localStream.toURL():remoteStream?.toURL()} />
+          </View>
+          {pauselocal===true&&mainscreen===false || pause===true&&mainscreen ?  <View style={{position:"absolute",top:0,bottom:0,right:0,left:0,justifyContent:"center",alignItems:"center",backgroundColor:"black"}}>
+
+  <Text style={{color:"white"}} >Duraklatıldı</Text>
+
+  </View>:null}
+
+{mutelocal&&!mainscreen || mainscreen&&mute  ? <View style={{position:"absolute",bottom:20,right:0,left:0,height:75,justifyContent:"center",alignItems:"center"}}><Text style={{color:"white"}}>Sessiz</Text></View>:null}
+          </Animated.View></GestureDetector> }
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+      
+      
+    </View>
+    </GestureHandlerRootView>
+  )
 }

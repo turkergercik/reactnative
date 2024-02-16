@@ -4,7 +4,7 @@ import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import SignIn from "./screens/Signin";
 import { AuthContext } from "./Authcontext";
 import { Auth } from "./Authcontext";
-import {View,PermissionsAndroid,Alert,TouchableOpacity,StatusBar,Text,Linking,NativeModules, Dimensions, TouchableNativeFeedback,ActivityIndicator,AppState} from "react-native"
+import {View,PermissionsAndroid,Alert,TouchableOpacity,StatusBar,Text,Linking,NativeModules,NativeEventEmitter, Dimensions, TouchableNativeFeedback,ActivityIndicator,AppState, BackHandler} from "react-native"
 import { useAuthorization } from "./Authcontext";
 import Home from "./screens/Home";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,7 +18,7 @@ import Videocall from "./screens/videocall";
 import Audiocall from "./screens/audiocall";
 import { FlatList, GestureDetector, GestureHandlerRootView,Gesture } from "react-native-gesture-handler";
 import { useDispatch, useSelector } from "react-redux";
-import { signIn, setmpeop, setpeop,signOut  } from "./redux/counter";
+import { signIn, setmpeop, setpeop,signOut, setcurrentconv  } from "./redux/counter";
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {navigationRef} from "./navigators/rootnavigator"
 import RNCallKeep from 'react-native-callkeep';
@@ -50,6 +50,8 @@ import Draw from "./screens/draw";
 import { Notifications } from "react-native-notifications";
 import PushNotification, {Importance} from 'react-native-push-notification';
 import Callscreen from "./screens/callvideoscreen";
+
+
 const {pause}=NativeModules
 let {width,height}=Dimensions.get("window")
 let mode=null
@@ -57,33 +59,43 @@ const height1=Dimensions.get("screen").height
 const n=height1-height-StatusBar.currentHeight
 let x =0
 let xs =true
+let subscription=null
+let yaz=false
+let se=null
 export default function App({ navigation,call,socket1,call2}) {
-
+  const count = useSelector((state) => state.counter.currentconv)
+  const dispatch = useDispatch()
   const appState = useRef(AppState.currentState);
-  const [appStateVisible, setAppStateVisible] = useState("open");
+  const appfirstlaunch = useRef(true);
+  const [appStateVisible, setAppStateVisible] = useState(true);
+  const [app1, setapp1] = useState(null);
+  const [caller, setcaller] = useState({});
   const [xy, setxy] = useState(null);
   //const Stack = createStackNavigator()
   const { type, isConnected } = useNetInfo();
   const Stack = createNativeStackNavigator();
   //const { isLoading,userToken,img } = useSelector((state) => state.counter);
   //const dispatch = useDispatch();
-const {setsomemessages,somemessages,state,setsoc,menuopens,socketbackup,authContext,img,socket,server,remoteRTCMessage,seticall,icall,currentconv,setmessages,istoday,stat,setstat,offlinepause,myconv,messages,check,allm,setcalli,calli,setnavbar,cam,ss,setss,onlines,setonlines,setinchat,inchat,settyping,typing,currentother} = useAuthorization()
+const {invc,setsomemessages,somemessages,state,setsoc,menuopens,socketbackup,authContext,img,socket,server,remoteRTCMessage,currentconv,setmessages,istoday,stat,setstat,offlinepause,myconv,messages,check,allm,setcalli,calli,setnavbar,cam,ss,setss,onlines,setonlines,setinchat,inchat,settyping,typing,currentother,setlastmesssages,incall,settrigger} = useAuthorization()
 const d =new ShortUniqueId({length:10})
 x+=1
 const c =useRef(null)
 const firstopen =useRef(true)
 const opacity = useSharedValue(1)
+const pad = useSharedValue(0)
+const op = useSharedValue(1)
 const tx = useSharedValue(-width)
 const color = useSharedValue("white")
 const ballwidth =useRef(70)
 const width1 =useRef(0.8)
-const calln = useRef(null)
+
 const inchatref = useRef([])
 const inchatcheck = useRef(false)
-const [abs, setabs] = useState(null)
+const [sid, setsid] = useState(null)
 const [visible,setIsVisible]=useState(false)
 const [callername,setcallername]=useState(null)
 const [calltype,setcalltype]=useState(null)
+const [icall,seticall]=useState(false)
 
  const RNCall = async() => {
   console.log("oolol")
@@ -117,57 +129,40 @@ const [calltype,setcalltype]=useState(null)
 
 
 }
-/* async function set1(){
 
-  try {
-    await BackgroundFetch.configure({
-      minimumFetchInterval: 15,
-      forceAlarmManager:true,
-   startOnBoot:true,
-   stopOnTerminate:false,
-   enableHeadless:true,
-   requiresCharging:false,
-   requiresBatteryNotLow:false,
-    }, async (taskId) => {  // <-- Event callback
-      console.log("[BackgroundFetch] taskId: ", taskId);
-      BackgroundFetch.finish(taskId);
-    }, async (taskId) => {
-      console.log("[BackgroundFetch] taskId: bok", taskId);
-
-      // <-- Task timeout callback
-      // This task has exceeded its allowed running-time.
-      // You must stop what you're doing and immediately .finish(taskId)
-      BackgroundFetch.finish(taskId);
-    })
-
-    await BackgroundFetch.scheduleTask({
-      taskId: 'com.foo.customtask',
-      delay: 5000,       // milliseconds
-      forceAlarmManager: true,
-      startOnBoot:true,
-      stopOnTerminate:false,
-      periodic: true,
-      enableHeadless:true
-    }).then((e)=>{
-console.log(e,45)
-    }).catch((e)=>{
-      console.log(e,46)
- 
-    })
-  } catch (error) {
-    
-  }
-
-
- 
-  BackgroundFetch.start()
-} */
 let xx= true
 
 useEffect(()=>{
-  SplashScreen.hide()
+ 
+  const listener = storage.addOnValueChangedListener((changedKey) => {
+    if(changedKey.length===10){
+      setlastmesssages(changedKey)
+    }
+  })
+  async function gg(){
+    let sry = await pause.getcurrent()
+    if(sry){
+      pad.value=withTiming(100,{duration:2000})
+      setapp1(sry)
 
+    }
+    op.value=withRepeat(withSequence(
 
+      withTiming(0,{duration:600}),withTiming(1,{duration:500})
+    ),-1)
+    let det = storage.getString("calldetails")
+    if(det){
+      let detail = JSON.parse(det)
+        if(detail.type==="Video"){
+
+          setcaller({callerName:detail.callerName,type:"görüntülü",type1:"Video"})
+        }else{
+          setcaller({callerName:detail.callerName,type:"sesli",type1:"Audio",})
+        }
+     
+    }
+  }
+  gg()
   Notifications.setNotificationChannel({
     channelId: 'my-channel',
     name: 'My Channel',
@@ -180,12 +175,36 @@ useEffect(()=>{
     showBadge: true,
     vibrationPattern: [200, 1000, 500, 1000, 500],
 })
+const eventEmitter = new NativeEventEmitter(NativeModules.PipAndroidModule);
+let eventListener1 = eventEmitter.addListener('appstate', event => {
+    
+  setapp1(event)
+  if(event){
+
+  }else{
+    pad.value=withTiming(0,{duration:2000})
+  }
+  /* if(event===false){
+  }else{
+    incall.current=false
+
+  } */
 
 
+});
 
 setss(false)
-   const subscription = AppState.addEventListener("change", async(nextAppState) => {
+let ye=null
+    subscription = AppState.addEventListener("change", async(nextAppState) => {
+      
     const myid = storage.getString("id")
+    const cn = storage.getString("callnotif")
+    storage.delete("callnotif")
+   
+    const svc = storage.getString("svc")
+    let sry = await pause.getcurrent()
+   
+    
       /* const call1 = await AsyncStorage.getItem("caller")
     const callnotif = await AsyncStorage.getItem("callnotif")
      */
@@ -208,39 +227,63 @@ setss(false)
       //setAppStateVisible("open")
      
        //c1==null
-       if(nextAppState==="background" && menuopens.current!==true ){
-        /* storage.delete("caller")
-        storage.delete("callnotif") */
-         //pause.pause()
-         
-         //await AsyncStorage.removeItem("call")
-         if(currentconv.current){
-           socket.current.emit("closedsession",currentother.current,currentconv.current)
-         }else{
-           socket.current?.close()
-         }
-         
-          
-         
-         //socket.current=null 
-         
+
+    if(nextAppState==="background" && menuopens.current!==true && sry!==true ){
+      seticall(false)
+      setAppStateVisible(false)
+      console.log("8888877")
+      /* storage.delete("caller")
+      storage.delete("callnotif") */
+       //pause.pause()
+       
+       //await AsyncStorage.removeItem("call")
+       if(currentconv.current){
+         socket.current?.emit("closedsession",currentother.current,currentconv.current)
        }else{
-        console.log("yok")
-        if(menuopens.current!==true){
-          if(myid){
-            socket.current?.open()
-            socket.current?.emit("no",myid)
-    
-    
-          }
+         socket.current?.emit("dc1",myid)
+       }
+       socket.current=null
         
+       
+       //socket.current=null 
+       
+     }else{
+       if(menuopens.current!==true){
+        console.log("yok")
+        if(myid){
+          /* socket.current=io(server)
+          socket.current?.emit("no",myid) */
+          if(cn){
+            
+  
+          }else{
+            if(svc===undefined){
+              console.log("varvaar")
+              
+              setAppStateVisible(Date.now())
+  
+            }
+  
+          }
+          
+  
+  
         }
+      
+      }else{
+        console.log("var")
+      }
+  
+     
+      
+      menuopens.current=false
+      incall.current=false
+      
+     }
+
+  
 
        
-        
-        menuopens.current=false
-        
-       }
    
       
       
@@ -258,8 +301,11 @@ setss(false)
 
  return ()=>{
   subscription.remove();
+  listener.remove()
+  eventListener1.remove()
  }
 },[])
+
 useEffect(() => {
 
  async function ass(){
@@ -358,8 +404,8 @@ return ()=>{
  console.log("ok")
   //socket?.current?.close()
   //call=null
-  setcalli(false)
-  seticall(false)
+  /* setcalli(false)
+  seticall(false) */
 }
 }, [])
 /* useEffect(()=>{
@@ -457,14 +503,18 @@ SystemNavigationBar.setNavigationColor("black")
            
             //RNCall()
          
-            if(socket1){
+            /* if(socket1){
               socket1.off("endCall")
              socket.current=socket1
             }else{
-
-              socket.current = io(server)
-              socket.current.emit("no",userId)
               
+              
+            } */
+            if(appStateVisible!==false){
+                
+              socket.current = io(server)
+              socket.current?.emit("no",userId)
+
             }
             socket.current.on("getm",async(e)=> {
               console.log("yenimesaj")
@@ -523,6 +573,7 @@ SystemNavigationBar.setNavigationColor("black")
               console.log("heyo")
               //await AsyncStorage.setItem(e.conversationid,JSON.stringify([...n,...all]))
               storage.set(e.conversationid,JSON.stringify([...n,...all]))
+              setlastmesssages(e.conversationid)
             } catch (error) {
               
             }
@@ -538,7 +589,7 @@ SystemNavigationBar.setNavigationColor("black")
                  n=[...n,e.text.others]
               } */
              /* if(e.isNotification){
-         socket.current.emit("send",{
+         socket.current?.emit("send",{
                sender:e.sender,
                text:e.text,
                createdAt: e.createdAt,
@@ -560,6 +611,7 @@ SystemNavigationBar.setNavigationColor("black")
             
             })
             socket.current.on("get",(e)=>{
+             
               
              setonlines(e)
              
@@ -574,7 +626,7 @@ SystemNavigationBar.setNavigationColor("black")
                 
               }
               /* if(currentconv.current===a.b && inchatcheck.current===false){
-                socket.current.emit("inchat",currentother.current,currentconv.current)
+                socket.current?.emit("inchat",currentother.current,currentconv.current)
                 inchatcheck.current=true
 
               } */
@@ -634,6 +686,8 @@ if(offlinepause.current.video===true){
 
             
             socket.current.on('newCall', async(data) => {
+              
+              
               let type=null
               if(data.type){
                 if(data.type==="Audio"){
@@ -659,8 +713,10 @@ if(offlinepause.current.video===true){
               InCallManager.startRingtone("DEFAULT","","default","")
              
               if(navigationRef.getCurrentRoute().name!=="Video"){
-                
+                y=true
+                dispatch(setcurrentconv(true))
                   seticall(true)
+               
 
             
 
@@ -772,7 +828,7 @@ if(offlinepause.current.video===true){
               await AsyncStorage.setItem(conversation._id,JSON.stringify(c)) */
               storage.set("mpeop",JSON.stringify(all))
               storage.set(conversation._id,JSON.stringify(c))
-              socket.current.emit("newconv",e,a)
+              socket.current?.emit("newconv",e,a)
             }else{
               //chati güncelle
             console.log(conversation,3)
@@ -810,7 +866,7 @@ if(offlinepause.current.video===true){
                  allm.current=c
                  setmessages(c)
                  setsomemessages(c)
-                 socket.current.emit("newconv",JSON.stringify(conversation),JSON.stringify(message))
+                 socket.current?.emit("newconv",JSON.stringify(conversation),JSON.stringify(message))
 
               }else{
                 Alert.alert("7ok")
@@ -905,7 +961,7 @@ if(offlinepause.current.video===true){
                 if(filtered[0].receiver.delete===true){
                   console.log(8)
                   all.splice(i,1)
-                  socket.current.emit("deleteconversation",id)
+                  socket.current?.emit("deleteconversation",id)
                   //state.mpeop.slice(i,1)
 
                 }else{
@@ -917,7 +973,7 @@ if(offlinepause.current.video===true){
                console.log(1)
                 if(filtered[0].sender.delete===true){
                   all.splice(i,1)
-                  socket.current.emit("deleteconversation",id)
+                  socket.current?.emit("deleteconversation",id)
                   //state.mpeop.slice(i,1)
 
                 }else{
@@ -976,9 +1032,10 @@ if(offlinepause.current.video===true){
               });
             socket.current.on('endCall', async(data) => {
               InCallManager.stopRingtone()
+              y=false
+              dispatch(setcurrentconv(false))
                seticall(false)
-               setcalli(false)
-               setss(false)
+               
                /* if(calln.current!=null){
                 //await AsyncStorage.removeItem("caller")
                 storage.delete("caller")
@@ -1017,10 +1074,10 @@ if(offlinepause.current.video===true){
                  
                    
                }
-               remoteRTCMessage.current={
+               /* remoteRTCMessage.current={
                  rtcMessage:null,
                  callerId:null,
-               }
+               } */
                
                
             
@@ -1060,17 +1117,17 @@ if(offlinepause.current.video===true){
       
     };
 
-    if(appStateVisible==="open"){
-      bootstrapAsync();
+    bootstrapAsync();
+    /* if(appStateVisible==="open"){
       setsoc(socket.current)
-    } 
+    } */ 
       
 
 
     return ()=>{
       //socket.current.close()
     }
-  }, [state.userId]);
+  }, [state.userId,appStateVisible]);
   let x 
   let y
   let z
@@ -1245,7 +1302,7 @@ useEffect(()=>{
 <View style={{backgroundColor:"red",flex:1}}>
   <TouchableOpacity style={{flex:1,alignItems:"center",justifyContent:"center"}}
     onPress={()=>{
-  socket.current.emit("endCall",call.callerId)
+  socket.current?.emit("endCall",call.callerId)
   setTimeout(() => {
     
     pause.pause()
@@ -1264,7 +1321,7 @@ async function decline(){
   //let a = await AsyncStorage.getItem("caller")
   let a = storage.getString("caller")
   let b= JSON.parse(a)
-  socket.current.emit("endCall",b.otherid) 
+  socket.current?.emit("endCall",b.otherid) 
   storage.delete("caller")
   storage.delete("callnotif")
   setss(false)
@@ -1273,7 +1330,7 @@ async function decline(){
   //await AsyncStorage.removeItem("caller")
   
 
-  /* ocket.current.emit("endCall",call.callerId) 
+  /* ocket.current?.emit("endCall",call.callerId) 
   pause.pause() */
  
 }
@@ -1324,6 +1381,9 @@ tx.value=0
 color.value="white"
 
       }) */
+      useEffect(()=>{
+console.log(icall,22222222333)
+      },[icall])
       function lay(event){
         let w =event.nativeEvent.layout.width
         let d=5000
@@ -1364,7 +1424,18 @@ color.value="white"
           
         }
       })
-
+      const style = useAnimatedStyle(()=>{
+        return{
+          opacity:op.value
+          
+        }
+      })
+      const styles = useAnimatedStyle(()=>{
+        return{
+          paddingTop:pad.value
+          
+        }
+      })
   function SS(){
     
     return(
@@ -1377,7 +1448,7 @@ color.value="white"
       <TouchableNativeFeedback style={{flex:1,justifyContent:"center",alignItems:"center",borderBottomLeftRadius:15}} onPress={()=>{
         InCallManager.stopRingtone()
         //Alert.alert(`${remoteRTCMessage.current.callerId}`)
-        socket.current.emit("endCall",remoteRTCMessage.current.callerId)
+        socket.current?.emit("endCall",`${remoteRTCMessage.current.callerId}-call`)
 
         seticall(false)
   //Linking.openURL("Video",{otherid:rtcm.current.otherid})
@@ -1394,11 +1465,22 @@ color.value="white"
 
       <View style={{flex:1}}>
 
-      <TouchableNativeFeedback style={{flex:1,backgroundColor:"red",justifyContent:"center",alignItems:"center"}}onPress={()=>{
+      <TouchableNativeFeedback style={{flex:1,backgroundColor:"red",justifyContent:"center",alignItems:"center"}}onPress={async()=>{
         if(remoteRTCMessage.current.callerId){
+       
+         /* storage.set("callnotif",JSON.stringify(true))
+         socket.current.emit("dc1",state.userId)
+         socket.current=null */
+          storage.set("svc","true")
+          storage.set("calldetails",JSON.stringify({convid:null,otherid:remoteRTCMessage.current.callerId,notid:null,entrytype:"incomingcall",sdp:remoteRTCMessage.current.rtcMessage,callerName:remoteRTCMessage.current.callerName,type:remoteRTCMessage.current.callType}))
+
+          menuopens.current=true
           InCallManager.stopRingtone()
+          dispatch(setcurrentconv(false))
           seticall(false)
-         navigationRef.navigate(remoteRTCMessage.current.callType,{otherid:remoteRTCMessage.current.callerId,call:"outchat",other:remoteRTCMessage.current.callerName})
+          pause.startcall(`${remoteRTCMessage.current.callType}`)
+          //"boş",remoteRTCMessage.current.callerId.toString(),"boş","incomingcall",JSON.stringify(remoteRTCMessage.current.rtcMessage),true
+         //navigationRef.navigate(remoteRTCMessage.current.callType,{otherid:remoteRTCMessage.current.callerId,call:"outchat",other:remoteRTCMessage.current.callerName})
          // Linking.openURL(`my://Chatview/Video/?otherid=${remoteRTCMessage.current.callerId}&&call=outchat`)
         }
         
@@ -1418,7 +1500,23 @@ color.value="white"
 
 
     )
+   
     
+  }
+  function Callnotif(){
+    return(
+<Animated.View entering={SlideInUp} exiting={SlideOutUp.duration(1600)} style={{width:"100%",justifyContent:"center",alignItems:"center",top:0,paddingTop:StatusBar.currentHeight,height:100,backgroundColor:"green",zIndex:2}}>
+        <TouchableOpacity style={{flex:1,width:"100%",alignItems:"center",justifyContent:"center"}} onPress={()=>{
+         pause.startcall(caller.type1)
+
+        }}>
+        <Animated.Text style={[style,{color:"white",fontSize:20,fontWeight:"300"}]}>{caller.callerName} ile {caller.type} görüşmeye devam et</Animated.Text>
+
+
+        </TouchableOpacity>
+      </Animated.View>
+
+    )
   }
  
   if(state.isLoading){
@@ -1434,7 +1532,14 @@ color.value="white"
     
     <GestureHandlerRootView onLayout={()=>{
  
-    }} style={{flex:1,backgroundColor:"black"}}>
+    }} style={{flex:1,backgroundColor:"black",zIndex:0}}>
+      {
+        app1 && <Callnotif></Callnotif>
+      }
+      <Animated.View layout={LinearTransition.duration(500)} style={[{flex:1}]}>
+      
+   
+      
 
       <NavigationContainer  linking={linking} ref={navigationRef} theme={{colors:{background:"black"}}}>
      
@@ -1451,7 +1556,7 @@ color.value="white"
         ) : (
           <><Stack.Screen name="Chat" component={Chat} options={{animation:"fade",animationEnabled:false}} >
           </Stack.Screen>
-          <Stack.Screen name="Chatid" component={Chatid} options={{cardStyle:{backgroundColor:"red"},presentation:"transparentModal",cardStyleInterpolator:CardStyleInterpolators.forHorizontalIOS}} />
+          <Stack.Screen name="Chatid"  component={Chatid} incall={incall.current} options={{cardStyle:{backgroundColor:"red"},presentation:"transparentModal",cardStyleInterpolator:CardStyleInterpolators.forHorizontalIOS}} />
           <Stack.Screen name="Photo" component={Photo} options={{animation:"none",cardStyle:{backgroundColor:"black"},presentation:"transparentModal",animationEnabled:true}} />
           <Stack.Screen name="Video" component={Videocall} options={{cardStyle:{backgroundColor:"transparent"},presentation:"transparentModal",animationEnabled:true,animation:"slide_from_bottom"}}/>
           <Stack.Screen name="Audio" component={Audiocall} options={{cardStyle:{backgroundColor:"transparent"},orientation:"portrait",presentation:"transparentModal",animationEnabled:true,animation:"slide_from_bottom"}}/>
@@ -1461,10 +1566,10 @@ color.value="white"
 
           </>
         )}
-       
          
         
       </Stack.Navigator>
+       
       <Portal>
            <Dialog style={{backgroundColor:"#5B3E98",borderRadius:20}} onDismiss={()=>setIsVisible(false)} visible={visible}>
             <Dialog.Content>
@@ -1515,6 +1620,7 @@ color.value="white"
 <ActivityIndicator size={100} color="#6538c6" ></ActivityIndicator>
         </Animated.View>
       }
+      {icall && <SS></SS>} 
       {/* {ss && <Animated.View style={[{position:"absolute",top:0,bottom:0,right:0,left:0,zIndex:2,backgroundColor:"black"},sty]}>
 
 </Animated.View>} */}
@@ -1560,9 +1666,9 @@ color.value="white"
 
 </Animated.View>
 </Animated.View> } */}
-      {icall &&<SS></SS>} 
+      
       </NavigationContainer>
-
+      </Animated.View>
       </GestureHandlerRootView>
 
   );

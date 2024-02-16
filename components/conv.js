@@ -9,8 +9,8 @@ import Animated,{ Extrapolate, interpolate,useSharedValue,useAnimatedStyle, runO
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { ComposedGesture, ExclusiveGesture } from 'react-native-gesture-handler';
 import User from "../images/user.svg"
-import axios from 'axios';
-import { Button,Portal,Dialog,IconButton,Surface } from 'react-native-paper';
+import axios, { all } from 'axios';
+import { Button,Portal,Dialog,IconButton,Surface, Icon } from 'react-native-paper';
 import { storage } from '../Authcontext';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -100,7 +100,7 @@ if(res.data==="updated"){
 
 }
 const Conv = ({mpeop1,peop,userId,navigation,simul,isopen,k,setisopen,o}) => {
-const { setmessages,istoday,rr,state,server,authContext,onlines}=useAuthorization()
+const { setmessages,istoday,rr,state,server,authContext,onlines,lastmesssages,setlastmesssages,settrigger,trigger}=useAuthorization()
 const translationX= useSharedValue(0)
 const initialTouchLocation = useSharedValue({ x: 0, y: 0 })
 const lastx = useSharedValue(0)
@@ -127,6 +127,8 @@ const enable1= useSharedValue(true)
   let me
  
    const [pp,setpp]=useState()
+   const [lastm,setlastm]=useState(null)
+   const [time,settime]=useState(null)
    const [online,setonline]=useState(false)
    const [enable,setenable]=useState(true)
    const [a,seta]=useState(12)
@@ -148,7 +150,53 @@ const enable1= useSharedValue(true)
     
 
   }
+  useEffect(()=>{
+    if(lastmesssages===mpeop1._id || lastmesssages===null || trigger===true){
+     
+   let allm = storage.getString(mpeop1._id)
+   if(allm){
+    let allm1=JSON.parse(allm)
+    let lastElement = allm1[0]
+    
+    if(lastElement){
+      if(lastElement.text){
+        setlastm(lastElement.text)
+        let now = new Date(Date.now())
+        let t
+        if(new Date(lastElement.createdAt).getFullYear()===now.getFullYear()){
+          switch(now.getDate()-new Date(lastElement.createdAt).getDate()){
+            case 0:
+              t=new Date(lastElement.createdAt).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})
+            break
+            case 1:
+              t="Dün"
+            break
+            default:
+              t=new Date(lastElement.createdAt).toLocaleDateString("tr-TR",{day:"2-digit",month:"2-digit",year:"2-digit"})
+          }
+        
+        }else{
+          t=new Date(lastElement.createdAt).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"})
+      
+        }
+        //let time= new Date(lastElement.createdAt).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})
+        
+        settime(t)
+
+      }else if(lastElement.media){
+        setlastm("yenifotoğraf")
+      }else{
+        setlastm(null)
+      }
+    }
+    console.log(lastElement,5555)
+   }
+  setlastmesssages(undefined)
+  settrigger(undefined)
+  }
+   },[lastmesssages,trigger])
 useEffect(()=>{
+  console.log(storage.getAllKeys())
  let f =onlines?.find((item)=>
    
     item.userId===otherid
@@ -509,7 +557,7 @@ if((mpeop1?.sender?.id===na.id && mpeop1?.sender.delete===false) || (mpeop1?.rec
               </IconButton>
               <IconButton icon={"trash-can-outline"} size={35} iconColor='red' rippleColor={"grey"} style={{width:60,height:60,position:"absolute",left:0,borderRadius:50}}
                 onPress={async()=>{
-                  deleteconv(mpeop1,other,otherid,notid.current,state,me,authContext,prt,)
+                  deleteconv(mpeop1,other,otherid,notid.current,state,me,authContext,prt)
                   close()
 
                 }}
@@ -525,24 +573,29 @@ if((mpeop1?.sender?.id===na.id && mpeop1?.sender.delete===false) || (mpeop1?.rec
                       nav()
                       setisopen(null)
                     }} activeOpacity={0.5} >
-                      <View style={{flexDirection:"row",flex:1,justifyContent:"space-between",backgroundColor:"black"}}>
-                            <View style={styles.first}>
+                      <View style={{flexDirection:"row",justifyContent:"space-between",flex:1,backgroundColor:"black"}}>
+                            <View style={[styles.first,{flex:1,flexDirection:"row",justifyContent:"flex-start"}]}>
                               <LinearGradient start={{x: 0, y: 0}} end={{x: 1, y: 1}} colors={online ?['#21D4FD','#B721FF']:["transparent","transparent"]} style={{width:68,height:68,borderRadius:35,justifyContent:"center",alignItems:"center"}}>
+                                <View style={{backgroundColor:"black",position:"absolute",width:58,height:58,borderRadius:30}}>
+                                  </View>
                               {pp? <TouchableOpacity onPress={()=>{
                               navigation.navigate("Photo",{img1:pp})
-                            }}><Image style={{width:60,height:60,borderRadius:100,resizeMode:"cover"}} source={{uri:pp}}/></TouchableOpacity> :<User style={{color:"#6538c6"}} width={60} height={60}/>}
-
+                            }}><Image style={{width:60,height:60,borderRadius:100,resizeMode:"cover"}} source={{uri:pp}}/></TouchableOpacity> :<User source={"account-circle"} size={60} color='#6538c6' style={{color:"#6538c6"}} width={67} height={67}/>}
                               </LinearGradient>
 
                           
-                                  <View style={styles.two}>
+                                  <View style={[styles.two,{flex:1}]}>
+                                    <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
                                     <Text style={{fontSize:17,fontWeight:300,color:"white"}}>{other}</Text>
+                                    <Text style={{color:"grey",fontWeight:"300",fontSize:14}} >{time}</Text>
+                                    </View>
+                                    <Text numberOfLines={1}  style={{fontSize:14,fontWeight:300,color:"white"}} ellipsizeMode="head" >{lastm}</Text>
                                   </View>
                             </View>
-                            <View style={styles.third}>
-                                  <Text style={{color:"red"}} >{}</Text>
+                            {/* <View style={[styles.third,{backgroundColor:"blue",flex:1}]}>
+                                  <Text style={{color:"red"}} >{456}</Text>
                             
-                            </View>
+                            </View> */}
                           </View>
                       </TouchableNativeFeedback>     
                 </View>     
@@ -569,7 +622,9 @@ const styles = StyleSheet.create({
      justifyContent:"space-between",
         alignItems:"center",
     },first:{
+      
       marginLeft:5,
+      marginRight:5,
       flexDirection:"row",
       justifyContent:"center",
       alignItems:"center",
@@ -582,7 +637,8 @@ justifyContent:"center"
     },third:{
       
       alignSelf:"center",
-      marginRight:5
+      marginRight:5,
+      flex:1
 
 
     }

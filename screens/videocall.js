@@ -1,4 +1,4 @@
-import { View,Text,TouchableOpacity, PermissionsAndroid,Alert ,Image,StatusBar,Dimensions,useWindowDimensions,TouchableNativeFeedback,NativeModules} from 'react-native'
+import { View,Text,TouchableOpacity,NativeEventEmitter, PermissionsAndroid,Alert ,Image,StatusBar,Dimensions,useWindowDimensions,TouchableNativeFeedback,NativeModules, BackHandler} from 'react-native'
 import React,{useContext,useState,useRef,useEffect} from 'react'
 import { UserContext } from '../components/context'
 import { useAuthorization } from '../Authcontext';
@@ -25,11 +25,13 @@ import { Gesture, GestureDetector, GestureHandlerRootView,ScrollView } from 'rea
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storage } from '../Authcontext';
 import { IconButton } from 'react-native-paper';
+
 console.log(storage)
 const {pause:df}=NativeModules
 const as= StatusBar.currentHeight
 let x
 export default function Videocall({navigation,route,soc1}) {
+  //const inPipMode = usePipModeListener()
   const { height, width } = useWindowDimensions();
     const{auth,soc,setauth,messages,setmessages,currentconv,setcurrentconv,messageRef,server,socket,remoteRTCMessage,callst,state,seticall,offlinepause,setcalli,setss,menuopens}=useAuthorization()
     const [type, setType] = useState('JOIN');
@@ -90,6 +92,8 @@ export default function Videocall({navigation,route,soc1}) {
     let notid= route?.params?.notid
     let caller= route?.params?.caller
   let info = route?.params?.info
+  const PipAndroidModule = NativeModules.PipAndroid;
+
   
 useEffect(()=>{
   
@@ -101,6 +105,28 @@ xc.value=0
 yc.value=0
 
 },[height])
+
+/* useEffect(()=>{
+  
+  const eventEmitter = new NativeEventEmitter(NativeModules.PipAndroidModule);
+  let eventListener = eventEmitter.addListener('declineclick', event => {
+    socket.current.emit("endCall",otherid,notid)
+    socket.current.emit("dc1",state.userId)
+    menuopens.current=false
+    navigation.goBack()
+    setTimeout(() => {
+      
+      socket.current=null
+    }, 0);
+    df.pause()
+    //BackHandler.exitApp()
+    console.log("basıldı") // "someValue"
+  });
+  return () => {
+    eventListener.remove();
+  };
+  
+  },[]) */
 
 async function hasAndroidPermission() {
     
@@ -169,7 +195,7 @@ async function hasAndroidPermission() {
   
       //const callnotif = await AsyncStorage.removeItem("callnotif")
       setss(false)
-       SystemNavigationBar.setNavigationColor("transparent","dark")
+       //SystemNavigationBar.setNavigationColor("transparent","dark")
       
      }, 350);
       /* InCallManager.start()
@@ -180,6 +206,7 @@ async function hasAndroidPermission() {
          
         //setcallst(true)
         socket.current.on('callAnswered', async(data) => {
+          Alert.alert("ık")
           InCallManager.stopRingtone()
           setType(true)
        che.current=true
@@ -408,7 +435,6 @@ if(data==="video"){
 
           check.current=null
           seticall(false)
-          socket.current.emit("endCall",otherid,notid)
           peerConnection.current.close()
           peerConnection.current=null
           callst.current=false
@@ -434,7 +460,7 @@ if(data==="video"){
 
 useEffect(()=>{
   if(type===true){
-  
+    Alert.alert("bok")
   sendICEcandidate({calleeId:otherid,rtcMessage:check.current})
 
 }
@@ -674,6 +700,20 @@ setmainscreen(true)
         };
       });
       //#FCF5E5
+      /* if (inPipMode) {
+        return (
+          <View style={{backgroundColor:"black",flex:1}} >
+        <RTCView
+        ref={v}
+        mirror={true}
+          objectFit={'cover'}
+          style={{
+           flex:1
+          }}
+          streamURL={remoteStream?.toURL()} />
+          </View>
+        );
+      } */
   return (
     <View style={{flex:1,flexDirection:"column"}}>
        {pauselocal&&mainscreen || !mainscreen&&pause ?  <View pointerEvents="none" style={{position:"absolute",top:0,bottom:0,right:0,left:0,justifyContent:"center",alignItems:"center",zIndex:1}}>
@@ -682,9 +722,11 @@ setmainscreen(true)
 
             </View>
             </View>:null}
-          <Animated.View style={[ts,{width:"100%",height:75+as,left:0,alignItems:"center",backgroundColor:"#141414",position:"absolute",top:0,zIndex:1,flexDirection:"row",paddingTop:as,borderBottomLeftRadius:25,borderBottomRightRadius:25}]}>
+          <Animated.View style={[ts,{width:"100%",height:75+as,left:0,alignItems:"center",backgroundColor:"#141414",position:"absolute",top:0,zIndex:2,flexDirection:"row",paddingTop:as,borderBottomLeftRadius:25,borderBottomRightRadius:25}]}>
              <IconButton icon={"arrow-left"} size={30} iconColor='white' style={{margin:0}} onPress={()=>{
-              navigationRef.goBack()
+              menuopens.current=true
+              PipHandler.enterPipMode(400, 700)
+              
              }}>
 
              </IconButton>
@@ -731,6 +773,9 @@ setmainscreen(true)
             <TouchableNativeFeedback 
             style={{}}
               onPress={() => {
+                
+                socket.current.emit("endCall",otherid,notid)
+
                 seticall(false)
                 navigation.goBack();
               } }
