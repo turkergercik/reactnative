@@ -44,8 +44,7 @@ import InCallManager from 'react-native-incall-manager';
 import RNCallKeep from 'react-native-callkeep'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
-import Bard,{ askAI } from "bard-ai"
-import ReactNativeForegroundService from "@supersami/rn-foreground-service";
+//import ReactNativeForegroundService from "@supersami/rn-foreground-service";
 let   COOKIE_KEY ="g.a000iAjKuN70WDKaBm99O90_3RmDarUy75u4EyrTVKnbxVIS2EgCZOuIzfisVEapu7zmpTKcfAACgYKAR0SAQASFQHGX2MiWEAZRRxDvez1m56Vv-y2pRoVAUF8yKrrrNUGQBIzsyII28Mjbw6O0076"
 const API_KEY ="AIzaSyCLk9WSnLZhhmP8QEQGl2250pGR6JwAGAk"
 let ssd
@@ -57,18 +56,18 @@ const height1=Dimensions.get("screen").height
 //const navbar=height1-height-StatusBar.currentHeight
 const as= StatusBar.currentHeight
 let img
-ReactNativeForegroundService.add_task(() => ()=>{console.log("ok")}, {
+/* ReactNativeForegroundService.add_task(() => ()=>{console.log("ok")}, {
   delay: 1000,
   onLoop: true,
   taskId: "taskid",
   onError: (e) => console.log(`Error logging:`, e),
-});
+}); */
 
 
 export async function deleteconv(mpeop1f,otherf,otheridf,notid,state,me,authContext,prt){
   /* storage.delete("ai")
   storage.delete("hai") */
-  await ReactNativeForegroundService.start({
+  /* await ReactNativeForegroundService.start({
     id: 1244,
     title: "Foreground Service",
     message: "We are live World",
@@ -84,7 +83,7 @@ export async function deleteconv(mpeop1f,otherf,otheridf,notid,state,me,authCont
       max: 100,
       curr: 50,
     },
-  });
+  }); */
 
 
 

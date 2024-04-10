@@ -42,7 +42,7 @@ import { storage } from '../Authcontext'
 import notifee,{ AndroidCategory, NotificationFullScreenAction } from '@notifee/react-native'
 import InCallManager from 'react-native-incall-manager';
 import RNCallKeep from 'react-native-callkeep'
-import ReactNativeForegroundService from "@supersami/rn-foreground-service";
+//import ReactNativeForegroundService from "@supersami/rn-foreground-service";
 let ssd
 const {pause}=NativeModules
 let x
@@ -1400,7 +1400,7 @@ function hideDialog(){
                       taskId: "taskid",
                       onError: (e) => console.log(`Error logging:`, e),
                     }); */
-                     ReactNativeForegroundService.start({
+                     /* ReactNativeForegroundService.start({
                       id: 1244,
                       title: "Foreground Service",
                       message: "We are live World",
@@ -1416,7 +1416,7 @@ function hideDialog(){
                         max: 100,
                         curr: 50,
                       },
-                    });
+                    }); */
                     /* await notifee.displayNotification({
                       id:"1",
                       title:"arama",
