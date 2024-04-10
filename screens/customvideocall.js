@@ -31,8 +31,8 @@ import { setcurrentconv } from '../redux/counter';
 import notifee from '@notifee/react-native';
 import { Platform } from 'react-native';
 
-let server ="http://192.168.1.104:3001"
-
+//let server ="http://192.168.1.104:3001"
+const server = "https://smartifier.onrender.com"
 console.log(storage)
 const {pause:df}=NativeModules
 const enterpip=NativeModules.pipmodule
@@ -136,7 +136,7 @@ export default function CustomVideocall({navigation,route,soc1,someValue,fromapp
     const eventEmitter = new NativeEventEmitter(NativeModules.pipmodule);
     let eventListener = eventEmitter.addListener('PIP_MODE_CHANGE', event => {
       
-      console.log(event)
+      console.log(event,88)
      setinPipMode(event)
     });
     let eventListener2 = eventEmitter.addListener('onhint', event => {
@@ -150,10 +150,11 @@ export default function CustomVideocall({navigation,route,soc1,someValue,fromapp
 
           togglemenu()
         }
-        setTimeout(() => {
+        setinPipMode(true)
+     
           enterpip.enterPipMode(400, 700)
           
-        }, 0);
+       
         
       }
     });
@@ -217,6 +218,7 @@ useEffect(()=>{
 
           togglemenu()
         }
+        setinPipMode(true)
         setTimeout(() => {
           enterpip.enterPipMode(400, 700)
           
@@ -927,7 +929,7 @@ setmainscreen(true)
         );
       }
   return (
-    <GestureHandlerRootView style={{flex:1,flexDirection:"column"}}>
+    <GestureHandlerRootView style={{flex:1,flexDirection:"column",backgroundColor:"black"}}>
     <View style={{flex:1,flexDirection:"column"}}>
        {pauselocal&&mainscreen || !mainscreen&&pause ?  <View pointerEvents="none" style={{position:"absolute",top:0,bottom:0,right:0,left:0,justifyContent:"center",alignItems:"center",zIndex:1}}>
             <View style={{backgroundColor:"black",paddingHorizontal:10,borderRadius:10}}>
@@ -948,6 +950,7 @@ setmainscreen(true)
 
                 togglemenu()
               }
+              setinPipMode(true)
               setTimeout(() => {
                 enterpip.enterPipMode(400, 700)
                 

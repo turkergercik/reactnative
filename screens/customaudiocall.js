@@ -33,8 +33,8 @@ import { Platform } from 'react-native';
 import Volume from "../images/volume.svg"
 import Muted from "../images/muted.svg"
 import User from "../images/user.svg"
-let server ="http://192.168.1.106:3001"
-
+//let server ="http://192.168.1.106:3001"
+const server = "https://smartifier.onrender.com"
 console.log(storage)
 const {pause:df}=NativeModules
 const enterpip=NativeModules.pipmodule
@@ -204,15 +204,15 @@ useEffect(()=>{
     socket.current.emit("endCall",otherid,notid)
     if(fromapp){
       if(inPipMode){
-        df.stopvc()
+        df.stopcall("Audio")
 
       }else{
         
-        df.stopvc1()
+        df.stopcall1("Audio")
       }
 
     }else{
-      df.stopvc()
+      df.stopcall("Audio")
       if(socket.current!==null){
         a()
 

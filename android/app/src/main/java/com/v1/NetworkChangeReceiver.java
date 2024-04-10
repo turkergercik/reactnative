@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -26,6 +27,7 @@ import androidx.core.app.NotificationCompat;
 import com.facebook.react.HeadlessJsTaskService;
 
 import java.net.URISyntaxException;
+import java.security.Provider;
 import java.util.List;
 public class NetworkChangeReceiver extends Service {
     BroadcastReceiver broadcastReceiver;
@@ -162,33 +164,8 @@ private void Work(Context context,boolean a){
     }
     @Override
     public void onCreate() {
-        Intent service = new Intent(getApplicationContext(), NetworkChangeReceiver.class);
-        //getApplicationContext().startService(service);
-        Log.d("hey","selamiiiii");
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("3", "background service notification", NotificationManager.IMPORTANCE_NONE);
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(channel);
 
 
-
-        Notification notification = new NotificationCompat.Builder(getApplicationContext(),"3").build();
-        startForeground(12, notification);
-        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-       Handler h = new Handler();
-       Runnable b = ()->{
-       };
-       h.postDelayed(b,1000);
-        }
-        //stopForeground(true);
-        // create IntentFilter
-        //add actions
-if(check==false){
-    IntentFilter filter = new IntentFilter();
-    filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
-    registerReceiver(new NetworkChangeReceivers(), filter);
-    check=true;
-}
 
 
 
@@ -196,7 +173,33 @@ if(check==false){
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
 
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("3", "background service notification", NotificationManager.IMPORTANCE_NONE);
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(channel);
 
+
+
+            Notification notification = new NotificationCompat.Builder(getApplicationContext(),"3").build();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(15,notification);
+                //startForeground(12, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+            }
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            Handler h = new Handler();
+            Runnable b = ()->{
+            };
+            h.postDelayed(b,1000);
+        }
+        //stopForeground(true);
+        // create IntentFilter
+        //add actions
+        if(check==false){
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+            registerReceiver(new NetworkChangeReceivers(), filter);
+            check=true;
+        }
 
         return START_STICKY;
     }

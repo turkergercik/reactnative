@@ -50,8 +50,8 @@ import Draw from "./screens/draw";
 import { Notifications } from "react-native-notifications";
 import PushNotification, {Importance} from 'react-native-push-notification';
 import Callscreen from "./screens/callvideoscreen";
-
-
+import CustomVideocall from "./screens/customvideocall";
+import Ai from "./screens/ai";
 const {pause}=NativeModules
 let {width,height}=Dimensions.get("window")
 let mode=null
@@ -76,7 +76,7 @@ export default function App({ navigation,call,socket1,call2}) {
   const Stack = createNativeStackNavigator();
   //const { isLoading,userToken,img } = useSelector((state) => state.counter);
   //const dispatch = useDispatch();
-const {invc,setsomemessages,somemessages,state,setsoc,menuopens,socketbackup,authContext,img,socket,server,remoteRTCMessage,currentconv,setmessages,istoday,stat,setstat,offlinepause,myconv,messages,check,allm,setcalli,calli,setnavbar,cam,ss,setss,onlines,setonlines,setinchat,inchat,settyping,typing,currentother,setlastmesssages,incall,settrigger} = useAuthorization()
+const {invc,setsomemessages,somemessages,state,setsoc,menuopens,socketbackup,authContext,img,socket,server,remoteRTCMessage,currentconv,setmessages,istoday,stat,setstat,offlinepause,myconv,messages,check,allm,setcalli,calli,setnavbar,cam,ss,setss,onlines,setonlines,setinchat,inchat,settyping,typing,currentother,setlastmesssages,incall,settrigger,setmpeop,mpeop} = useAuthorization()
 const d =new ShortUniqueId({length:10})
 x+=1
 const c =useRef(null)
@@ -136,10 +136,35 @@ useEffect(()=>{
  
   const listener = storage.addOnValueChangedListener((changedKey) => {
     if(changedKey.length===10){
+      console.log(mpeop,"3636")
       setlastmesssages(changedKey)
+    
+      
+      //setmpeop(state.mpeop)
+    }else if(changedKey="mpeop"){
+      
+      /* console.log(state.mpeop,"8855")
+      let x= storage.getString("mpeop")
+      if(x){
+       let y = JSON.parse(x)
+       y.sort((a,b)=>{
+         if(new Date(a.updatedAt)<new Date(b.updatedAt)){
+           return 1
+         }else if(new Date(a.updatedAt)>new Date(b.updatedAt)){
+           return -1
+         }
+         return 0
+       })
+       console.log(y[0].updatedAt,4455)
+       console.log(y[1].updatedAt,4455)
+       console.log(y[2].updatedAt,4455)
+       setmpeop(y)
+      } */
     }
+  
   })
   async function gg(){
+    
     let sry = await pause.getcurrent()
     if(sry){
       pad.value=withTiming(100,{duration:2000})
@@ -517,6 +542,7 @@ SystemNavigationBar.setNavigationColor("black")
 
             }
             socket.current.on("getm",async(e)=> {
+              Alert.alert("ok")
               console.log("yenimesaj")
               let n =[{
                 _id:e._id,
@@ -1276,7 +1302,7 @@ useEffect(()=>{
     },
   };
   const linking = {
-    prefixes: ['mychat://'],
+    prefixes: ['my://app'],
     config,
   };
 
@@ -1563,6 +1589,7 @@ console.log(icall,22222222333)
           <Stack.Screen name="Allpeople" component={Allpeople}/>
           <Stack.Screen name="Takephoto" component={Take} options={{cardStyle:{backgroundColor:"black"},orientation:"portrait",presentation:"transparentModal",contentStyle:{backgroundColor:"black"},cardStyleInterpolator:CardStyleInterpolators.forBottomSheetAndroid,animation:"slide_from_bottom"}}/>
           <Stack.Screen name="Draw" component={Draw} options={{cardStyle:{backgroundColor:"black"},orientation:"portrait",presentation:"transparentModal",contentStyle:{backgroundColor:"black"},cardStyleInterpolator:CardStyleInterpolators.forBottomSheetAndroid,animation:"slide_from_bottom"}}/>
+          <Stack.Screen name="Ai" component={Ai} options={{cardStyle:{backgroundColor:"black"},orientation:"portrait",presentation:"transparentModal",contentStyle:{backgroundColor:"black"},cardStyleInterpolator:CardStyleInterpolators.forBottomSheetAndroid,animation:"slide_from_bottom"}}/>
 
           </>
         )}

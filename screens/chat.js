@@ -5,7 +5,7 @@ import Conv from '../components/conv.js'
 import { ScrollView } from 'react-native-gesture-handler'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useAuthorization } from '../Authcontext.js'
+import { AuthContext, useAuthorization } from '../Authcontext.js'
 import { useDispatch, useSelector } from "react-redux";
 import { signIn, setmpeop, setpeop  } from "../redux/counter.js"
 import Animated, { Extrapolation, FadeIn, FadeOut, Layout, SlideInRight, SlideOutRight, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated'
@@ -69,7 +69,7 @@ const Chat = ({navigation}) => {
     },
   ];
   let token
-  const{messages,setmessages,userId,server,userToken,authContext,state,menuopens,socket,setss}=useAuthorization()
+  const{messages,setmessages,userId,server,userToken,authContext,state,menuopens,socket,setss,setmpeop,mpeop,order,setorder}=useAuthorization()
   //const { userToken,userId,server,mpeop,peop } = useSelector((state) => state.counter);
   //const dispatch = useDispatch();
   const [isopen,setisopen]=useState(null)
@@ -122,6 +122,25 @@ const Chat = ({navigation}) => {
   })
   
   }
+  async function navtoai(){
+   
+    const mess= storage.getString("ai")
+    const history = storage.getString("hai")
+    if(mess && history){
+       let h = JSON.parse(history)
+       console.log(h,27)
+        setmessages(JSON.parse(mess))
+        navigation.navigate("Ai",{id:"ai",mess:true,newchat:false,history:h})
+
+    }else{
+        
+        navigation.navigate("Ai",{id:"ai",mess:false,newchat:true,history:[]})
+    }
+
+
+    
+
+  }
   async function deletepp(){
     setIsVisible(false)
     setmypp(null)
@@ -168,6 +187,7 @@ const Chat = ({navigation}) => {
  //let m = await AsyncStorage.getItem("mpeop")
  let m = storage.getString("mpeop")
  if(m){
+  setmpeop(JSON.parse(m))
   authContext.setmpeop(JSON.parse(m))
  }else{
   const convers = await axios.get(`${prt}/conversations/${na.id}`,{headers:headers}).then(async(res)=>{
@@ -210,6 +230,7 @@ const Chat = ({navigation}) => {
 
 
    },[state])
+   
   useEffect(()=>{
  
 
@@ -232,6 +253,26 @@ const Chat = ({navigation}) => {
 
 
    },[])
+   
+   /* useEffect(()=>{
+    if(state.mpeop && order === true){
+     
+      setorder(false)
+     let sorted= state.mpeop.sort((a,b)=>{
+      if(new Date(a.updatedAt)<new Date(b.updatedAt)){
+        return 1
+      }else if(new Date(a.updatedAt)>new Date(b.updatedAt)){
+        return -1
+      }
+      return 0
+    })
+    
+    authContext.setmpeop(state.mpeop)
+   // setmpeop(state.mpeop)
+    }
+
+  
+   },[order,state]) */
   const data = [
     {
       id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
@@ -317,14 +358,14 @@ const Chat = ({navigation}) => {
         
       </Ti>
       
-      <View style={{flex:1}}> 
+      <View style={{}}> 
               <ScrollView
 
               scrollEnabled={true}
               ref={simul}
               overScrollMode="always"
                       style={{backgroundColor:"black"}}
-                      contentContainerStyle={{rowGap:5,paddingVertical:1.25,marginBottom:-0.5}}
+                      contentContainerStyle={{rowGap:5,margin:-0.5}}
                       showsVerticalScrollIndicator={false}
 
 
@@ -332,7 +373,14 @@ const Chat = ({navigation}) => {
 
               >
               {
-                state.mpeop?.map((c,i)=>
+                state.mpeop.sort((a,b) =>{
+                if(new Date(a.updatedAt)< new Date(b.updatedAt)){
+                  return 1
+                }else if(new Date(a.updatedAt)< new Date(b.updatedAt)){
+                  return -1
+                }
+                return 0
+                }).map((c,i)=>
               <Conv mpeop1={c} peop={state.peop} navigation={navigation} key={i} k={i} userId={state.userId} simul={simul} isopen={isopen} setisopen={setisopen} o={o} />
 
 
@@ -344,15 +392,33 @@ const Chat = ({navigation}) => {
               </ScrollView>
               
       </View>
-
+      <View style={{justifyContent:"flex-end",alignItems:"center",position:"absolute",right:10,bottom:10,width:70}}>
+        <View style={{width:50,height:50,borderRadius:25,marginBottom:10,backgroundColor:"white"}}>
+            <TouchableNativeFeedback
+             background={TouchableNativeFeedback.Ripple("white",true)}
+             onPress={()=>{
+              navtoai()
+              
+             }} activeOpacity={0.5}
+            >
+             <View style={{width:50,height:50,backgroundColor:"#6538c6",borderRadius:25,display:"flex",justifyContent:"center",alignItems:"center"}}>
+               <Text style={{color:"white"}}>
+                Ai
+               </Text>
+             </View>
+            </TouchableNativeFeedback>
+        </View>
+     
       <FAB
       icon="plus" mode="elevated" customSize={70} color='white' rippleColor={"white"} 
       onPress={()=>{
         change()
       }}
-      style={{justifyContent:"center",alignItems:"center",position:"absolute",right:10,bottom:10,width:70,height:70,backgroundColor:"#6538c6",borderRadius:40}}>
+      style={{justifyContent:"center",alignItems:"center",width:70,height:70,backgroundColor:"#6538c6",borderRadius:40}}>
 
       </FAB>
+        </View>
+      
       <Portal>
            <Dialog style={{backgroundColor:"#5B3E98",borderRadius:20}} onDismiss={()=>setIsVisible(false)} visible={visible}>
             <Dialog.Content>

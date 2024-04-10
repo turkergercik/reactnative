@@ -68,6 +68,7 @@ export function Auth({children,socketi}){
     const [stat, setstat] = useState(false)
     const [gest, setgest] = useState(true)
     const [mesnotif, setmesnotif] = useState(false)
+    const [order, setorder] = useState(null)
     const [visible, setIsVisible] = useState(false);
     const [a, seta] = useState()
     const [keyboard,setkeyboard] = useState()
@@ -150,7 +151,7 @@ export function Auth({children,socketi}){
         []
       );
 return(
-<AuthContext.Provider value={{settrigger,trigger,incall,invc,setinvc,lastmesssages,setlastmesssages,currentother,typing,settyping,inchat,setinchat,onlines,setonlines,menuopens,somemessages,setsomemessages,socketbackup,cam,setsoc,soc,camopen,setcamopen,ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
+<AuthContext.Provider value={{setorder,order,settrigger,trigger,incall,invc,setinvc,lastmesssages,setlastmesssages,currentother,typing,settyping,inchat,setinchat,onlines,setonlines,menuopens,somemessages,setsomemessages,socketbackup,cam,setsoc,soc,camopen,setcamopen,ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
 {children}
 </AuthContext.Provider>
 )

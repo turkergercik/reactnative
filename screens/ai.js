@@ -42,7 +42,12 @@ import { storage } from '../Authcontext'
 import notifee,{ AndroidCategory, NotificationFullScreenAction } from '@notifee/react-native'
 import InCallManager from 'react-native-incall-manager';
 import RNCallKeep from 'react-native-callkeep'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+import { HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
+import Bard,{ askAI } from "bard-ai"
 import ReactNativeForegroundService from "@supersami/rn-foreground-service";
+let   COOKIE_KEY ="g.a000iAjKuN70WDKaBm99O90_3RmDarUy75u4EyrTVKnbxVIS2EgCZOuIzfisVEapu7zmpTKcfAACgYKAR0SAQASFQHGX2MiWEAZRRxDvez1m56Vv-y2pRoVAUF8yKrrrNUGQBIzsyII28Mjbw6O0076"
+const API_KEY ="AIzaSyCLk9WSnLZhhmP8QEQGl2250pGR6JwAGAk"
 let ssd
 const {pause}=NativeModules
 let x
@@ -52,86 +57,35 @@ const height1=Dimensions.get("screen").height
 //const navbar=height1-height-StatusBar.currentHeight
 const as= StatusBar.currentHeight
 let img
+ReactNativeForegroundService.add_task(() => ()=>{console.log("ok")}, {
+  delay: 1000,
+  onLoop: true,
+  taskId: "taskid",
+  onError: (e) => console.log(`Error logging:`, e),
+});
+
+
 export async function deleteconv(mpeop1f,otherf,otheridf,notid,state,me,authContext,prt){
-  let k 
-  state.mpeop.find((item,index)=>{
-     if(item._id===mpeop1f._id){
-      return k=index
-     }
-    }
-  )
-  console.log(k,"üüüüüüü")
-  let mpeop=[]
-  let object={
-    sendername:state.userName,
-    receivername:otherf,
-    senderid:state.userId,
-    receiverid:otheridf,
-  receivernotificationid:notid
-  }
-    if(me==="sender"){
-      object["senderdeleted"]=true
-      mpeop1f.sender.delete=true
-      if(mpeop1f.receiver.delete===true){
-        state.mpeop.splice(k,1)
-       
-       }
-    }else{
-      mpeop1f.receiver.delete=true
-      object["receiverdeleted"]=true
-      if(mpeop1f.sender.delete===true){
-        state.mpeop.splice(k,1)
-       
-       }
-    }
-    //close()
-    mpeop=[...state.mpeop]
-    
-    authContext.setmpeop(mpeop)
-    /* await AsyncStorage.setItem("mpeop",JSON.stringify(mpeop))
-    await AsyncStorage.removeItem(mpeop1._id) */
-    storage.set("mpeop",JSON.stringify(mpeop))
-    storage.delete(mpeop1f._id)
+  /* storage.delete("ai")
+  storage.delete("hai") */
+  await ReactNativeForegroundService.start({
+    id: 1244,
+    title: "Foreground Service",
+    message: "We are live World",
+    icon: "ic_launcher",
+    button: true,
+    button2: true,
+    buttonText: "Button",
+    button2Text: "Anther Button",
+    buttonOnPress: "cray",
+    setOnlyAlertOnce: true,
+    color: "#000000",
+    progress: {
+      max: 100,
+      curr: 50,
+    },
+  });
 
-    await axios.put(`${prt}/conversations/${mpeop1f._id}`,object).then(async(res)=>{
-      console.log(res.data)
-
-      
-
-
-
-if(res.data==="updated"){
-  /* if(me==="sender"){
-    
-
-   }else{
-      
-   } */
-   mpeop=[...state.mpeop]
-
-
-
-
-
-}else if(res.data==="deleted"){
-
-
-}else{
-  //mpeop=[...state.mpeop,res.data]
-}
-  
-
-//authContext.setmpeop(mpeop)
-
-
-//ne =[{_id:res.data._id,members:[na.id,person._id,na.name,person.name,true,true]}]
-//ne[0]._id=res.data._id
-//message(pre=>[...pre,res.data])
-//chec(person.name)
-}).catch((err)=>{console.log(err)})
-
-
-  //await AsyncStorage.removeItem(mpeop1._id)
 
 
 }
@@ -139,8 +93,24 @@ if(res.data==="updated"){
 
 
 
-const Chatid = ({route,navigation,setmesnotif}) => {
-  
+const Chatid = ({route,navigation,setmesnotif,histor}) => {
+    const safetySettings = [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },{
+            category:HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+        },{
+            category:HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+           
+        }
+      ];
 const windowSize =messages?.length > 50 ? messages.length/4 : 21;
 let num =100 
 let initialLoadNumber = 40 
@@ -229,12 +199,13 @@ let na={
   id:state.userId
 }
   const a = useRoute()
-  let other
+  let other ="ai"
   let otherid
-  let me
+  let me="sender"
   let id= route?.params?.id
-  currentconv.current=id
-  console.log(id,8888888)
+  const history = useRef(route?.params?.history) 
+  currentconv.current="ai"
+  console.log(history.current,8888888)
   let notid= route?.params?.notid
   let pp = route?.params?.pp
   let mpeop =route?.params?.mpeop
@@ -243,19 +214,7 @@ let na={
   let re= route?.params?.re
   let pos= route?.params?.pos
 
-  if(mpeop){
-    if(na.id===mpeop.sender?.id){
-      me="sender"
-  other= mpeop.receiver.name
-  otherid= mpeop.receiver.id
-  currentother.current=otherid
-    }else {
-      me="receiver"
-      other= mpeop.sender?.name
-      otherid= mpeop.sender?.id
-      currentother.current=otherid
-    }
-  } 
+  
 
  const today = useRef(false)
 
@@ -326,115 +285,51 @@ let na={
 
 
   //const deletefunc = deleteconv(mpeop,other,otherid,notid.current,state,authContext,prt)
-  useEffect(()=>{
-    
-    let f =onlines?.find((item)=>
-      
-       item.userId===otherid
-         
-      
-     )
-     if(f){
-       setonline(true)
-       socket.current?.emit("inchat",otherid,currentconv.current)
-     }else{
-       setonline(false)
-     }
-   },[onlines])
+  
    const generateRandomDate = () => {
     const start = new Date(2023, 0, 1); // Start date: January 1, 2023
     const end = new Date(); // End date: Current date
     const randomDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
     return randomDate;
   };
-  const shuffleOrder = () => {
-    mp[0].updatedAt=generateRandomDate()
-    mp[1].updatedAt=generateRandomDate()
-    mp[2].updatedAt=generateRandomDate()
+  const generationConfig = {
+    temperature: 0.9,
+    topK: 1,
+    topP: 1,
+    maxOutputTokens: 2048,
+    };
+    async function initw(){
+      await Bard.init(COOKIE_KEY );
+      console.log(await askAI("hello"))
+      Alert.alert("ok")      
+    }
+  const genAI = new GoogleGenerativeAI(API_KEY);
+  const model = genAI.getGenerativeModel({ model: "gemini-pro",safetySettings:safetySettings,generationConfig:generationConfig});
+  console.log(history.current,44)
+  const chat = model.startChat({safetySettings:safetySettings,history:history.current})
 
-    setmpeop([...mp]);
-  };
- 
- 
+  useEffect(()=>{
+   //loadmess()
+
+
+  },[])
    useEffect(()=>{
-    //op.value=withRepeat(withSequence(withTiming(0),withTiming(1)),-1)
-    //op1.value=withDelay(100,withRepeat(withSequence(withTiming(0),withTiming(1)),-1))
-  
-    let f =typing?.find((item)=>
-      
-       item===id
-         
-      
-     )
-     if(f){
+    
+     if(typings){
      
-       settypings(true)
+       
        op1.value=withRepeat(withSequence(withTiming(0,conf),withTiming(1,conf)),-1)
        op2.value=withDelay(150,withRepeat(withSequence(withTiming(0,conf),withTiming(1,conf)),-1))
        op3.value=withDelay(300,withRepeat(withSequence(withTiming(0,conf),withTiming(1,conf)),-1))
-     }else{
-       settypings(false)
      }
     
-   },[typing])
-  
-
-   useEffect(()=>{
-    console.log(inchat,555)
-    let f =inchat?.find((item)=>
-       item.conversationid===id
-         
-      
-     )
-     if(f){
-       setinchats(true)
-     }else{
-       setinchats(false)
-     }
-   },[inchat])
-
-   useEffect(()=>{
-    state.mpeop.find((item,x)=>{
-      if(item._id===mpeop._id){
-        index=x
-        console.log(index,"774")
-       return index=x
-      }
-     })
-    socket.current?.emit("inchat",otherid,id)
-    return ()=>{
-  
-      socket.current?.emit("outchat",otherid,id)
-      
-    }
-   },[])
-  
-   useEffect(()=>{
-    if(changing!==false){
-      if(starttype.current===false){
-        console.log("o78")
-        socket.current?.emit("typing",otherid,id)
-        
-      }
-      starttype.current=true
-
-    
-     clearTimeout(x)
-     x= setTimeout(() => {
-      console.log("o77")
-      socket.current?.emit("nottyping",otherid,id)
-      starttype.current=false
-    }, 1000);
-  }
-    return ()=>{
-      
-      
-      
-    }
-   },[changing])
-   useEffect(()=>{
-console.log("787878787878")
    },[typings])
+  
+
+   
+
+   
+
   const resizeImage = (base64Str,pos) => {
     return new Promise((resolve) => {
       let a = 0
@@ -638,8 +533,9 @@ const d = new ShortUniqueId({ length: 10 })
 
 
 async function getmessages(){
+    
   //const mess = await AsyncStorage.getItem(currentconv.current)
-  const mess =storage.getString(currentconv.current)
+  const mess =storage.getString("ai")
   if(mess){
   allm.current=JSON.parse(mess)
   setmessages(allm.current)
@@ -671,51 +567,8 @@ async function getmessages(){
    
     //console.log(JSON.parse(mess).slice(0,2))
   }else{
-
-console.log(12)
-   const convers = await axios.get(`${prt}/messages/${currentconv.current}`,{headers}).then(async(res)=>{
-    if(res.data==="tokExp"){
   
-      //localStorage.setItem("aut",JSON.stringify({"isA":false,"tok":"tokExp"}))
-    }
-    let rev = generateItems(res.data)
-    let a=[]
-   
- 
-    rev.forEach((e,l)=>{
-    if(e.type ==="day"){
-      a.push(l)
-    }
-      
-      }
-          )
-    let d = a.findIndex((e,i)=>{
-      if(e>=15 && e<=25){
-        return i
-      }
-    })
-    
-    if(d!==-1){
-    
-    
-      setmessages(rev.slice(0,a[d]+1))
-    }else{
-      setmessages(rev)
-    }
-    //dispatch(setmessages(rev))
-   
-    allm.current=rev 
-    setmessages(rev)
-    setsomemessages(rev.slice(0,initialLoadNumber))
-   // messageRef.current=res.data.slice(0,20)
-   storage.set(currentconv.current,JSON.stringify(rev))
-   //await AsyncStorage.setItem(currentconv.current,JSON.stringify(rev))
-    //const obj = {[up.cid]: res.data}
-   
- }).catch((err)=>{
   setmessages([])
-    console.log("olmadı")
-  })
 
 }
 }
@@ -743,6 +596,7 @@ async function setnewmessages(){
 
 const imageUrl = "https://images.pexels.com/photos/994605/pexels-photo-994605.jpeg?auto=compress&cs=tinysrgb&w=2726&h=2047&dpr=1"
 async function all(){
+  
   let a = {date:new Date(Date.now()),type:"day",_id:d()}
   let b = [a]
   if(messages.length===0){
@@ -815,13 +669,7 @@ async function all(){
  */
 
     
-    console.log(messa)
-    if(messa===false){
-      console.log("e")
-      getmessages()
-    }else{
-      all()
-    }
+    all()
     //dispatch(setcurrentconv(id))
     
   return ()=>{
@@ -911,7 +759,7 @@ setTimeout(() => {
 
 
 async function sendTextMessage(media1){
-
+ 
   /* setcompleted(false)
   settext(null) */
   //animate.current?.prepareForLayoutAnimationRender()
@@ -921,6 +769,7 @@ async function sendTextMessage(media1){
   let x = input.current
   input.current=null
   if(x && x !=="" || media1 ){
+    settypings(true)
     if(media1){
 
     }else{
@@ -990,42 +839,40 @@ async function sendTextMessage(media1){
 
     }
     setmenu(true)
+    let ndate = Date.now()
+    const prompt = "1"
+    //history.current.push({role:"user", parts: [{ text: newmessage.text}]})
+   console.log(history.current)
+    const result = await chat.sendMessage(newmessage.text)
+    const response = result.response;
+  const text = response.text();
+  settypings(false)
+    //history.current.push({role:"model", parts: [{ text: text}]})
+    console.log(text);
+    storage.set("hai",JSON.stringify(history.current))
+    /* const result = await chat.(newmessage.text.toString());
+    const response = await  result.response;
+    const text = response.text(); */
+    setmessages((e)=>[{_id:ndate,text:text,createdAt:ndate},...e])
+    allm.current=[{_id:ndate,text:text,createdAt:ndate},...allm.current]
+    storage.set("ai",JSON.stringify(allm.current))
+    console.log(allm.current);
     
-    setTimeout(async() => {
+   /*  setTimeout(async() => {
       try {
-        storage.set(currentconv.current,JSON.stringify(allm.current))
-        setlastmesssages(currentconv.current)
-        
-        console.log(mpeop)
-        //await AsyncStorage.setItem(currentconv.current,JSON.stringify(allm.current))
-        if(check.current===true){
-          let a= [...state.mpeop,mpeop]
-          authContext.setmpeop(a)
-          socket.current?.emit("newconversationonline",otherid,other,JSON.stringify(mpeop),JSON.stringify(newmessage),notid)
-          storage.set("mpeop",JSON.stringify(a))
-          //await AsyncStorage.setItem("mpeop",JSON.stringify(a))
-          check.current=false
-      
-    
-        }else{
-          state.mpeop[index].updatedAt=new Date(Date.now()) 
-          let a= [...state.mpeop]
-          mp[index].updatedAt=new Date(Date.now()) 
-          setmpeop([...mp])
-          authContext.setmpeop(a)
-          storage.set("mpeop",JSON.stringify(a))
-          socket.current?.emit("send",JSON.stringify(newmessage),notid)
+          storage.set(currentconv.current,JSON.stringify(allm.current))
+          setlastmesssages(currentconv.current)
           await axios.post(`${prt}/messages`,newmessage).then(()=>{
             console.log("gg")
           }).catch((e)=>{
             console.log(e)
           })
-        }
+        
   
       } catch (error) {
         
       }
-    }, 0);
+    }, 0); */
   
 
 
@@ -1394,30 +1241,8 @@ function hideDialog(){
                     /* RNCallKeep.setAvailable(true)
                     RNCallKeep.startCall("123","456") */
                     //RNCallKeep.startCall("123","456")
-                    /* ReactNativeForegroundService.add_task(() => ()=>{console.log("ok")}, {
-                      delay: 1000,
-                      onLoop: true,
-                      taskId: "taskid",
-                      onError: (e) => console.log(`Error logging:`, e),
-                    }); */
-                     ReactNativeForegroundService.start({
-                      id: 1244,
-                      title: "Foreground Service",
-                      message: "We are live World",
-                      icon: "ic_launcher",
-                      button: true,
-                      button2: true,
-                      buttonText: "Button",
-                      button2Text: "Anther Button",
-                      buttonOnPress: "cray",
-                      setOnlyAlertOnce: false,
-                      color: "#000000",
-                      progress: {
-                        max: 100,
-                        curr: 50,
-                      },
-                    });
-                    /* await notifee.displayNotification({
+                    
+                    await notifee.displayNotification({
                       id:"1",
                       title:"arama",
                       body:"bok",
@@ -1429,7 +1254,7 @@ function hideDialog(){
                         showChronometer:true
                       }
   
-                    }) */
+                    })
                     //id,  otherid,  notid , "call",null,true
                    //navigation.navigate("Video", { convid: id, otherid: otherid, notid: notid })
                  } }>
@@ -1469,20 +1294,41 @@ function hideDialog(){
 
 
                  </IconButton>
-                 <IconButton icon={"dots-vertical"} size={30} iconColor='white' rippleColor={"grey"} style={{ margin: 0 }} onPress={() => {
-                   console.log("ol")
-                   /* setstat(true)
-                   setTimeout(() => {
-                     setstat(false)
-                   }, 1500); */
+                 <Menu
+                        style={{top:80+StatusBar.currentHeight}}
+                        contentStyle={{backgroundColor:"#141414",alignItems:"center",paddingVertical:-10}}
+                        visible={chatoptions}
+                        onDismiss={()=>{setchatoptions(false)}}
+                        anchorPosition="top"
+                        anchor={
+                          <IconButton icon={"dots-vertical"} size={30} iconColor='white' rippleColor={"grey"} style={{ margin: 0 }} onPress={() => {
+                            console.log("ol")
+                            /* setstat(true)
+                            setTimeout(() => {
+                              setstat(false)
+                            }, 1500); */
+                          
+                            
+                            setchatoptions(true)
+         
+                          } }>
+         
+         
+                          </IconButton>}
+                        >
+                          <Menu.Item  onPress={() => {setsearchmode(true)
+                          inputT.current.blur()
+                          setzi(false)
+                          setchatoptions(false)
+                          }} theme={{ colors: { onSurfaceVariant: 'red' } }} rippleColor={"grey"} title="Mesajlarda ara" style={{paddingRight:10}} titleStyle={{color:"white"}} />
+                          <Menu.Item  onPress={() => {deleteconv(mpeop,other,otherid,notid,state,me,authContext,prt)
+                          navigation.goBack()
+                          }} theme={{ colors: { onSurfaceVariant: 'red' } }} rippleColor={"grey"} title="Sohbeti Sil" style={{paddingRight:10}} titleStyle={{color:"white"}} />
+                          
+
+                        
+                    </Menu>
                  
-                   
-                   setchatoptions(true)
-
-                 } }>
-
-
-                 </IconButton>
                </View></> :<View style={{ flexDirection: "row", alignItems: "center" }}>
                <IconButton icon={"arrow-left"} size={30} iconColor='white' style={{ margin: 0 }} onPress={() => {
                  navigation.goBack()
@@ -1721,7 +1567,8 @@ stickydatevalue.current=true
                    </ScrollView> */}
                 
                 {zi? <Animated.View //layout={Layout.easing(Easing.elastic())} 
-                  style={[{flexDirection:"row",alignItems:"center",height:60,backgroundColor:"black",paddingBottom:5,paddingHorizontal:3,marginTop:0,}]} >
+                  style={[{flexDirection:"row",alignItems:"center",backgroundColor:"black",paddingBottom:5,paddingHorizontal:3,}]} >
+                   <View style={{flex:1,flexDirection:"row"}}>
                     <Ti 
                     //onKeyPress={foc}
                     //onPressIn={foc}
@@ -1744,17 +1591,18 @@ stickydatevalue.current=true
                     value={text}
                     underlineColor='transparent'
                     activeUnderlineColor='transparent'
+                    
                     multiline={true}
                     placeholder='Mesaj'
                     placeholderTextColor={'rgba(255, 255, 255, 0.5)'}
                     cursorColor={"grey"}
                     selectionColor={"grey"}
                     contentStyle={{width:"100%",height:"100%"}}
-                    style={{color:"white",backgroundColor:"#141414",width:"100%",fontWeight:"300",borderRadius:16,paddingHorizontal:10,height:50,fontSize:20/fontScale}}/>
-                    <IconButton  icon={ "image"} iconColor='white' size={27}  style={{height:45,backgroundColor:"black",position:"absolute",right:2,bottom:3.5,width:45,borderRadius:45}} onPress={()=>
-                    setIsVisiblem(true)
-                    }/>
-                    <IconButton  icon={"send"} iconColor='white' size={27}  style={{height:45,backgroundColor:"black",position:"absolute",right:54,bottom:3.5,width:45,borderRadius:45}} onPress={()=>
+                    style={{color:"white",backgroundColor:"#141414",width:"100%",minHeight:50, maxHeight:150,fontWeight:"300",borderRadius:16,paddingHorizontal:10,paddingVertical:5,fontSize:20/fontScale}}/>
+                    
+                    
+                    </View>
+                    <IconButton  icon={"send"} iconColor='white' size={27}  style={{height:45,backgroundColor:"#141414",width:45,borderRadius:45}} onPress={()=>
                     {
                       //settext(null)
                       /* let date=Date.now()
@@ -1788,7 +1636,11 @@ stickydatevalue.current=true
                         onDismiss={closeMenu}
                         anchorPosition="top"
                         anchor={
-                        <Button style={{}} onPress={openMenu}>Show menu</Button>}
+
+                          
+                          <IconButton  icon={ "image"} iconColor='white' size={27}  style={{height:45,backgroundColor:"#141414",width:45,borderRadius:45}} onPress={()=>
+                            setIsVisiblem(true)
+                            }/>}
                         >
                           <IconButton
                           icon={"camera"}
@@ -1821,27 +1673,7 @@ stickydatevalue.current=true
                           
                         
                     </Menu>
-                    <Menu
-                        style={{top:80+StatusBar.currentHeight}}
-                        contentStyle={{backgroundColor:"#141414",alignItems:"center",paddingVertical:-10}}
-                        visible={chatoptions}
-                        onDismiss={()=>{setchatoptions(false)}}
-                        anchorPosition="top"
-                        anchor={
-                        <Button style={{}} onPress={openMenu}>Show menu</Button>}
-                        >
-                          <Menu.Item  onPress={() => {setsearchmode(true)
-                          inputT.current.blur()
-                          setzi(false)
-                          setchatoptions(false)
-                          }} theme={{ colors: { onSurfaceVariant: 'red' } }} rippleColor={"grey"} title="Mesajlarda ara" style={{paddingRight:10}} titleStyle={{color:"white"}} />
-                          <Menu.Item  onPress={() => {deleteconv(mpeop,other,otherid,notid,state,me,authContext,prt)
-                          navigation.goBack()
-                          }} theme={{ colors: { onSurfaceVariant: 'red' } }} rippleColor={"grey"} title="Sohbeti Sil" style={{paddingRight:10}} titleStyle={{color:"white"}} />
-                          
-
-                        
-                    </Menu>
+                    
 
                 </Animated.View>:null}
                 

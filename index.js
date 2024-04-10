@@ -33,6 +33,8 @@ import CustomVideocall from './screens/customvideocall';
 import CustomAudiocall from './screens/customaudiocall';
 import { Provider } from 'react-redux';
 import store from './redux/store';
+//import ReactNativeForegroundService from "@supersami/rn-foreground-service";
+//ReactNativeForegroundService.register();
 const {pause}=NativeModules
 
 //example
@@ -46,7 +48,20 @@ let callnotif=null
 let server ="https://smartifier.onrender.com"
 const d =new ShortUniqueId({length:10})
 //const {state,authContext,img,remoteRTCMessage,seticall,icall,currentconv,setmessages,istoday,stat,setstat} = useAuthorization()
-
+/* notifee.registerForegroundService((notification) => {
+  return new Promise(() => {
+    notifee.onBackgroundEvent(async({ type, detail }) => {
+      if (type === EventType.PRESS ) {
+        pause.startcall("Video")
+      }
+    });
+    notifee.onForegroundEvent(async({ type, detail }) => {
+      if (type === EventType.PRESS ) {
+        pause.startcall("Video")
+      }
+    });
+  });
+}); */
 async function bootstrap() {
   const initialNotification = await notifee.getInitialNotification();
 
@@ -95,6 +110,28 @@ RNCallKeep.addEventListener('endCall', async()=>{
   
     console.log("merhaba")
   }); */
+  const options = {
+    ios: {
+      appName: 'My app name',
+    },
+    android: {
+      alertTitle: 'Permissions required',
+      alertDescription: 'This application needs to access your phone accounts',
+      cancelButton: 'Cancel',
+      okButton: 'ok',
+      imageName: 'phone_account_icon',
+    
+      // Required to get audio in background when using Android 11
+      foregroundService: {
+        channelId: 'my-channel',
+        channelName: 'My Channel',
+        notificationTitle: 'My app is running on background',
+        
+      }, 
+    }
+  };
+  
+  //RNCallKeep.setup(options).then(accepted => {});
 bootstrap()
 let nav
 let messages=[]
@@ -613,6 +650,7 @@ storage.set("mpeop",JSON.stringify(all))
       console.log("arama kapandı")
       call1=false
     }) */
+    
     RNCallKeep.registerAndroidEvents();
     RNCallKeep.setAvailable(true);
     //RNCallKeep.answerIncomingCall()
@@ -711,7 +749,7 @@ storage.set("mpeop",JSON.stringify(all))
                 title: '<p style="color: #0b8705;"><b>Kabul et</b></p>',
                 pressAction: {
                       id: "bok",
-                      launchActivityFlags:[],
+                      launchActivityFlags:[AndroidLaunchActivityFlag.MULTIPLE_TASK],
                       launchActivity: type,
                   }
               }, {

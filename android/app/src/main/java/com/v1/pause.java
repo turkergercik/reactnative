@@ -81,28 +81,31 @@ public class pause extends ReactContextBaseJavaModule {
     }
     @ReactMethod
     public void changedcm(String dcm) {
+         if(getCurrentActivity()!=null) {
+             WindowManager.LayoutParams lp = getCurrentActivity().getWindow().getAttributes();
+             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                 if (dcm.equals("shortEdges")) {
+                     lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
 
-        WindowManager.LayoutParams lp =getCurrentActivity().getWindow().getAttributes();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            if(dcm.equals("shortEdges")){
-                lp.layoutInDisplayCutoutMode= WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+                 } else if (dcm.equals("default")) {
+                     lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
 
-            }else if(dcm.equals("default")){
-                lp.layoutInDisplayCutoutMode= WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
+                 }
+                 runOnUiThread(new Runnable() {
+                     @Override
+                     public void run() {
+                         if(getCurrentActivity()!=null){
+                             getCurrentActivity().getWindow().getDecorView().requestLayout();
 
-            }
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    getCurrentActivity().getWindow().getDecorView().requestLayout();
+                         }
 
-                }
-            });
+                     }
+                 });
 
-        }
+             }
 
 
-
+         }
     }
     @ReactMethod
     public void startcall(String call) {
@@ -110,12 +113,24 @@ public class pause extends ReactContextBaseJavaModule {
         <item name="android:colorBackground">#ff00ff</item>
         */
         //,String id,String otherid,String notid,String call1,String info,Boolean fromapp
-        Intent intent=null;
+
         if(call.equals("Video")){
-             intent = new Intent(MainActivity.activity,CustomVideocall.class);
+            Intent intent = new Intent(MainActivity.activity,CustomVideocall.class);
+
+            //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            MainActivity.activity.startActivity(intent);
+            /*Intent  intent = new Intent(MainActivity.activity,CustomVideocall.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            MainActivity.activity.startActivity(intent);
+            MainActivity.activity.overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_right);*/
 
         }else{
-             intent = new Intent(MainActivity.activity,CustomAudiocall.class);
+            Intent intent = new Intent(MainActivity.activity,CustomAudiocall.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            MainActivity.activity.startActivity(intent);
+
 
         }
         //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -125,9 +140,6 @@ public class pause extends ReactContextBaseJavaModule {
         intent.putExtra("call1",call1);
         intent.putExtra("info",info);
         intent.putExtra("fromapp",fromapp);*/
-        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-        MainActivity.activity.startActivity(intent);
 
 
     }

@@ -3,8 +3,10 @@ package com.v1;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.transition.TransitionInflater;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -21,12 +23,13 @@ public class CustomVideocall extends ReactActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(null);
+        getWindow().getDecorView().setBackgroundColor(Color.BLACK);
         activity= this;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Window w = getWindow(); // in Activity's onCreate() for instance
             w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         }
-
+        overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_right);
 
     }
 
@@ -50,6 +53,7 @@ public class CustomVideocall extends ReactActivity {
     @Override
     public void onResume() {
         super.onResume();
+        overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_right);
         //pipmodule.eventEmitter.emit("appstate",true);
     }
     @Override
@@ -61,6 +65,7 @@ public class CustomVideocall extends ReactActivity {
         pipmodule.eventEmitter.emit("backpress",true);
     }
     static boolean active = false;
+
 
     @Override
     public void onStart() {
@@ -95,6 +100,12 @@ public class CustomVideocall extends ReactActivity {
     protected String getMainComponentName() {
         return "customvc";
     }
+    @Override
+    public void finish() {
+        super.finish();
 
+        // Set custom exit animation
+        overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_right);
+    }
 
 }

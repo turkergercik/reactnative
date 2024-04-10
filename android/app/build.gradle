@@ -162,6 +162,7 @@ compileOptions {
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
+    implementation 'androidx.core:core:1.6.0'
     implementation project(':react-native-notifications')
     implementation project(':react-native-push-notification')
     implementation project(':react-native-splash-screen')

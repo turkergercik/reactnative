@@ -100,7 +100,7 @@ if(res.data==="updated"){
 
 }
 const Conv = ({mpeop1,peop,userId,navigation,simul,isopen,k,setisopen,o}) => {
-const { setmessages,istoday,rr,state,server,authContext,onlines,lastmesssages,setlastmesssages,settrigger,trigger}=useAuthorization()
+const { setmessages,istoday,rr,state,server,authContext,onlines,lastmesssages,setlastmesssages,settrigger,trigger,setmpeop}=useAuthorization()
 const translationX= useSharedValue(0)
 const initialTouchLocation = useSharedValue({ x: 0, y: 0 })
 const lastx = useSharedValue(0)
@@ -152,6 +152,7 @@ const enable1= useSharedValue(true)
   }
   useEffect(()=>{
     if(lastmesssages===mpeop1._id || lastmesssages===null || trigger===true){
+    
      
    let allm = storage.getString(mpeop1._id)
    if(allm){
@@ -159,9 +160,7 @@ const enable1= useSharedValue(true)
     let lastElement = allm1[0]
     
     if(lastElement){
-      if(lastElement.text){
-        setlastm(lastElement.text)
-        let now = new Date(Date.now())
+      let now = new Date(Date.now())
         let t
         if(new Date(lastElement.createdAt).getFullYear()===now.getFullYear()){
           switch(now.getDate()-new Date(lastElement.createdAt).getDate()){
@@ -182,6 +181,9 @@ const enable1= useSharedValue(true)
         //let time= new Date(lastElement.createdAt).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})
         
         settime(t)
+      if(lastElement.text){
+        setlastm(lastElement.text)
+        
 
       }else if(lastElement.media){
         setlastm("yenifotoğraf")
@@ -196,7 +198,7 @@ const enable1= useSharedValue(true)
   }
    },[lastmesssages,trigger])
 useEffect(()=>{
-  console.log(storage.getAllKeys())
+
  let f =onlines?.find((item)=>
    
     item.userId===otherid
@@ -406,7 +408,7 @@ const touch = Gesture.Tap().onStart(()=>{
 })
 
  const panGesture = Gesture.Pan()
-   .manualActivation(true)
+   .manualActivation(false)
    .onBegin((evt,s) => {
      initialTouchLocation.value = { x: evt.x, y: evt.y };
      //translationX.value=lastx.value
@@ -435,7 +437,8 @@ const touch = Gesture.Tap().onStart(()=>{
        //state.fail()
      }
    }).onTouchesDown((evt)=>{
-   }).onChange((evt) =>{
+   })
+   .onChange((evt) =>{
     if(Math.abs(evt.translationX)>=width/3 ){
       
       
@@ -525,7 +528,7 @@ const touch = Gesture.Tap().onStart(()=>{
     } 
    }).onStart(()=>{
     
-   })
+   }).simultaneousWithExternalGesture(simul)
  
 
  const animated = useAnimatedStyle(() => {
@@ -540,7 +543,7 @@ const g = Gesture.Exclusive(panGesture,touch)
 if((mpeop1?.sender?.id===na.id && mpeop1?.sender.delete===false) || (mpeop1?.receiver?.id===na.id && mpeop1?.receiver.delete===false) ){
   return (
    
-    <GestureDetector gesture={g}  >
+    <GestureDetector  gesture={g}  >
           <Animated.View style={{justifyContent:"center",alignItems:"center"}}>
           
               <IconButton icon={"video"} size={35} iconColor='white' rippleColor={"grey"} style={{width:60,height:60,position:"absolute",right:60,borderRadius:50}}

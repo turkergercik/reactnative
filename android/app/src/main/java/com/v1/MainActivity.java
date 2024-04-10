@@ -51,6 +51,7 @@ public class MainActivity extends ReactActivity {
    * Returns the name of the main component registered from JavaScript. This is used to schedule
    * rendering of the component.
    */
+  private static MainActivity instance;
   public static Activity activity;
   public Handler handler = new Handler();
     public Runnable r=null;
@@ -60,6 +61,7 @@ public class MainActivity extends ReactActivity {
        //SplashScreen.show(this);  // here
     super.onCreate(null);
     activity=this;
+    instance=this;
        /*Window w =  getWindow();
        w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON|
                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD|
@@ -102,6 +104,19 @@ public class MainActivity extends ReactActivity {
         }
         return false;
     }
+    public static MainActivity getInstance() {
+        return instance;
+    }
+
+    public void myMethod() {
+        // do something...
+    }
+    public void ff(){
+       Intent intent = new Intent(this,CustomVideocall.class);
+       startActivity(intent);
+       overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_right);
+
+    }
     public void stars(){
        if(isMyServiceRunning(NetworkChangeReceiver.class)){
 
@@ -109,7 +124,9 @@ public class MainActivity extends ReactActivity {
        }else{
            Intent service = new Intent(getApplicationContext(), NetworkChangeReceiver.class);
            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+               //startForegroundService(service);
                getApplicationContext().startForegroundService(service);
+
            }
        }
 
@@ -146,8 +163,8 @@ public class MainActivity extends ReactActivity {
   @Override
     public void onDestroy() {
       Log.d("hey","son");
-stars();
-        super.onDestroy();
+       stars();
+       super.onDestroy();
 
     }
 

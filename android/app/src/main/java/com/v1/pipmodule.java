@@ -91,10 +91,13 @@ public class pipmodule extends ReactContextBaseJavaModule {
                     .Builder();
             List<RemoteAction> actions = new ArrayList<>();
             actions.add(remoteAction);
-            pip_Builder
-                    .setAspectRatio(ratio)
-                    .setActions(actions)
-                    .build();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                pip_Builder
+                        .setAspectRatio(ratio)
+                        .setActions(actions)
+                        .setSeamlessResizeEnabled(true)
+                        .build();
+            }
             reactApplicationContext.getCurrentActivity().enterPictureInPictureMode(pip_Builder.build());
         }
     }
