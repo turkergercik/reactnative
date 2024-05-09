@@ -81,7 +81,7 @@ public class MainActivity extends ReactActivity {
        filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
        registerReceiver(new NetworkChangeReceiver(), filter);*/
 
-       stars();
+       //stars();
        getWindow().getDecorView().setBackgroundColor(Color.BLACK);
        String manufacturer = "xiaomi";
       /* if (manufacturer.equalsIgnoreCase(android.os.Build.MANUFACTURER)) {
@@ -125,6 +125,7 @@ public class MainActivity extends ReactActivity {
            Intent service = new Intent(getApplicationContext(), NetworkChangeReceiver.class);
            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                //startForegroundService(service);
+               startService(service);
                getApplicationContext().startForegroundService(service);
 
            }
@@ -163,7 +164,7 @@ public class MainActivity extends ReactActivity {
   @Override
     public void onDestroy() {
       Log.d("hey","son");
-       stars();
+       //stars();
        super.onDestroy();
 
     }

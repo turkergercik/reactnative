@@ -27,6 +27,7 @@
     "@reduxjs/toolkit": "^1.9.5",
     "@shopify/flash-list": "^1.6.3",
     "@shopify/react-native-skia": "^0.1.233",
+    "@supersami/rn-foreground-service": "^2.1.0",
     "axios": "^1.4.0",
     "better-react-native-image-viewing": "^0.2.7",
     "buffer": "^6.0.3",

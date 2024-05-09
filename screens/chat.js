@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet,Image,TouchableHighlight, View,StatusBar,FlatList,TextInput as Ti, Dimensions, VirtualizedList,Alert,Linking,Text as T, TouchableNativeFeedback } from 'react-native'
+import { SafeAreaView, StyleSheet,Image,TouchableHighlight, NativeModules,View,StatusBar,FlatList,TextInput as Ti, Dimensions, VirtualizedList,Alert,Linking,Text as T, TouchableNativeFeedback } from 'react-native'
 import React,{useEffect,useState,useMemo,useContext,useRef,useLayoutEffect} from 'react'
 import { TouchableOpacity } from 'react-native'
 import Conv from '../components/conv.js'
@@ -27,6 +27,7 @@ import { storage } from '../Authcontext.js'
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import ImagePicker from 'react-native-image-crop-picker';
 const {width,height} =Dimensions.get("window")
+const {pause}=NativeModules
 const Chat = ({navigation}) => {
   let theme={
     primary:"#6538c6"
@@ -51,7 +52,7 @@ const Chat = ({navigation}) => {
   const opacity = useSharedValue(1)
   const lasto = useRef(null)
   const [visible,setIsVisible]=useState(false)
-  const [pause, setpause] = useState(false);
+  //const [pause, setpause] = useState(false);
   const [pauselocal, setpauselocal] = useState(false);
   const [mute, setmute] = useState(false);
   const [mutelocal, setmutelocal] = useState(false);
@@ -397,7 +398,8 @@ const Chat = ({navigation}) => {
             <TouchableNativeFeedback
              background={TouchableNativeFeedback.Ripple("white",true)}
              onPress={()=>{
-              navtoai()
+              pause.stopservice()
+              //navtoai()
               
              }} activeOpacity={0.5}
             >
@@ -412,7 +414,8 @@ const Chat = ({navigation}) => {
       <FAB
       icon="plus" mode="elevated" customSize={70} color='white' rippleColor={"white"} 
       onPress={()=>{
-        change()
+        pause.startservice()
+        //change()
       }}
       style={{justifyContent:"center",alignItems:"center",width:70,height:70,backgroundColor:"#6538c6",borderRadius:40}}>
 

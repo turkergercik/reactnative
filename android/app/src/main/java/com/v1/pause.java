@@ -64,6 +64,32 @@ public class pause extends ReactContextBaseJavaModule {
         }*/
     }
     @ReactMethod
+    public void startservice() {
+        Intent intent = new Intent(getReactApplicationContext(),NetworkChangeReceiver.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getCurrentActivity().startForegroundService(intent);
+        }
+
+
+
+       /* boolean c= isNotificationChannelEnabled(mReactContext,"3");
+        if(c){
+
+        }*/
+    }@ReactMethod
+    public void stopservice() {
+        Intent intent = new Intent(getReactApplicationContext(),NetworkChangeReceiver.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getCurrentActivity().stopService(intent);
+        }
+
+
+       /* boolean c= isNotificationChannelEnabled(mReactContext,"3");
+        if(c){
+
+        }*/
+    }
+    @ReactMethod
     public void isNotificationChannelEnabled(@Nullable String channelId, Promise promise){
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

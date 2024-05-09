@@ -33,8 +33,12 @@ import CustomVideocall from './screens/customvideocall';
 import CustomAudiocall from './screens/customaudiocall';
 import { Provider } from 'react-redux';
 import store from './redux/store';
-//import ReactNativeForegroundService from "@supersami/rn-foreground-service";
-//ReactNativeForegroundService.register();
+import ReactNativeForegroundService from "@supersami/rn-foreground-service";
+ReactNativeForegroundService.register();
+/* ReactNativeForegroundService.eventListener((e)=>{
+  Alert.alert("ok")
+console.log(e)
+}) */
 const {pause}=NativeModules
 
 //example
@@ -48,20 +52,25 @@ let callnotif=null
 let server ="https://smartifier.onrender.com"
 const d =new ShortUniqueId({length:10})
 //const {state,authContext,img,remoteRTCMessage,seticall,icall,currentconv,setmessages,istoday,stat,setstat} = useAuthorization()
-/* notifee.registerForegroundService((notification) => {
+notifee.registerForegroundService((notification) => {
   return new Promise(() => {
     notifee.onBackgroundEvent(async({ type, detail }) => {
       if (type === EventType.PRESS ) {
         pause.startcall("Video")
-      }
+      }else if(type===EventType.ACTION_PRESS && detail.pressAction.id==="endcall"){
+        pause.stopcall("Video")
+     }
     });
     notifee.onForegroundEvent(async({ type, detail }) => {
+      notifee.cancelNotification(detail.notification.id)
       if (type === EventType.PRESS ) {
         pause.startcall("Video")
+      }else if(type===EventType.ACTION_PRESS && detail.pressAction.id==="endcall"){
+         pause.stopcall("Video")
       }
     });
   });
-}); */
+});
 async function bootstrap() {
   const initialNotification = await notifee.getInitialNotification();
 
@@ -906,8 +915,22 @@ call1=false
 
 
 const Backtest = async(w)=>{
+if(w.ended===true){
+  let a = storage.getString("calldetails")
+  if(a){
+    let b = JSON.parse(a)
+    const socket = io(server)
+    socket.emit("endCall",b.otherid,null)
+    socket.emit("endCall",`${b.otherid}-call`,null)
+    pause.stopcall1("Video")
+   
+  }else{
+    pause.stopcall1("Video")
+  }
   
-if(w.first===true){
+}else if(w.notification){
+  pause.startcall("Video")
+}else if(w.first===true){
   //let id= await AsyncStorage.getItem("id")
   let id= storage.getString("id")
   if(id){

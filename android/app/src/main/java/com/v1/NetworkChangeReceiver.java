@@ -5,6 +5,7 @@ import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import android.app.Person;
 
 import com.facebook.react.HeadlessJsTaskService;
 
@@ -172,25 +174,67 @@ private void Work(Context context,boolean a){
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
+         Notification notification=null;
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("3", "background service notification", NotificationManager.IMPORTANCE_NONE);
-            NotificationManager manager = getSystemService(NotificationManager.class);
+        NotificationChannel channel = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            channel = new NotificationChannel("3", "background service notification", NotificationManager.IMPORTANCE_NONE);
+        }
+        NotificationManager manager = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            manager = getSystemService(NotificationManager.class);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(channel);
+        }
 
+        Intent service = new Intent(getApplicationContext(),MyReceiver2.class);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, service, PendingIntent.FLAG_IMMUTABLE);
+            Person incomingCaller = null;
+            Intent service1 = new Intent(getApplicationContext(),MyReceiver3.class);
+            service1.putExtra("notification","true");
+            PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext(), 0, service1, PendingIntent.FLAG_IMMUTABLE);
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                incomingCaller = new Person.Builder()
+                        .setName("Jane Doe")
+                        .setImportant(true)
+                        .build();
+                notification = new Notification.Builder(getApplicationContext(),"3")
+                        .setContentTitle("Ongoing Call")
+                        .setContentText("You have an ongoing call.")
+                        .setSmallIcon(R.drawable.ic_action_name)
+                      .setOngoing(true)
+                         .setContentIntent(pendingIntent2)
+                        .setStyle(Notification.CallStyle.forOngoingCall(incomingCaller, pendingIntent))
+                        .build();
 
-            Notification notification = new NotificationCompat.Builder(getApplicationContext(),"3").build();
+            }else{
+                notification = new NotificationCompat.Builder(getApplicationContext(), "3")
+                        .setContentTitle("Ongoing Call")
+                        .setContentText("You have an ongoing call.")
+                        .setSmallIcon(R.drawable.ic_action_name)
+                        .setContentIntent(pendingIntent2)
+                        .addAction(R.mipmap.ic_launcher,"Decline",pendingIntent)
+                        .build();
+            }
+            /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                notification = new NotificationCompat.Builder(getApplicationContext(),"3")
+                        .setStyle(Notification.CallStyle.forOngoingCall(incomingCaller1,pendingIntent))
+                        .addPerson(incomingCaller)
+                        .build();
+            }*/
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(15,notification);
+
                 //startForeground(12, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
             }
-            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            startForeground(10,notification);
+            //NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
             Handler h = new Handler();
             Runnable b = ()->{
             };
             h.postDelayed(b,1000);
-        }
+
         //stopForeground(true);
         // create IntentFilter
         //add actions

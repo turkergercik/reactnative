@@ -42,7 +42,7 @@ import { storage } from '../Authcontext'
 import notifee,{ AndroidCategory, NotificationFullScreenAction } from '@notifee/react-native'
 import InCallManager from 'react-native-incall-manager';
 import RNCallKeep from 'react-native-callkeep'
-//import ReactNativeForegroundService from "@supersami/rn-foreground-service";
+import ReactNativeForegroundService from "@supersami/rn-foreground-service";
 let ssd
 const {pause}=NativeModules
 let x
@@ -1391,16 +1391,19 @@ function hideDialog(){
                    pause.startcall(
                      "Video"
                     )
+                    pause.startservice()
                     /* RNCallKeep.setAvailable(true)
                     RNCallKeep.startCall("123","456") */
                     //RNCallKeep.startCall("123","456")
-                    /* ReactNativeForegroundService.add_task(() => ()=>{console.log("ok")}, {
-                      delay: 1000,
-                      onLoop: true,
-                      taskId: "taskid",
+                    /* ReactNativeForegroundService.add_task(() => ()=>{pause.startcall(
+                      "Video"
+                     )}, {
+                      delay: 0,
+                      onLoop: false,
+                      taskId: "open",
                       onError: (e) => console.log(`Error logging:`, e),
-                    }); */
-                     /* ReactNativeForegroundService.start({
+                    });
+                     ReactNativeForegroundService.start({
                       id: 1244,
                       title: "Foreground Service",
                       message: "We are live World",
@@ -1409,14 +1412,15 @@ function hideDialog(){
                       button2: true,
                       buttonText: "Button",
                       button2Text: "Anther Button",
-                      buttonOnPress: "cray",
+                      buttonOnPress:"open",
                       setOnlyAlertOnce: false,
+                      importance:1,
                       color: "#000000",
                       progress: {
                         max: 100,
                         curr: 50,
                       },
-                    }); */
+                    }) */
                     /* await notifee.displayNotification({
                       id:"1",
                       title:"arama",
@@ -1426,7 +1430,14 @@ function hideDialog(){
                         asForegroundService:true,
                         channelId:"my-channel",
                         category:AndroidCategory.CALL,
-                        showChronometer:true
+                        showChronometer:true,
+                        actions:[{
+                          title:"end up",
+                          pressAction:{
+                            id:"endcall"
+                          }
+                        }]
+                        
                       }
   
                     }) */

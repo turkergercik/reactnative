@@ -9,6 +9,9 @@ public class MyReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+
+        // Check if extras exist
+
         pipmodule.eventEmitter.emit("declineclick",true);
         // TODO: This method is called when the BroadcastReceiver is receiving
         // an Intent broadcast
