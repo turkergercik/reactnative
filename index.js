@@ -34,6 +34,12 @@ import CustomAudiocall from './screens/customaudiocall';
 import { Provider } from 'react-redux';
 import store from './redux/store';
 import ReactNativeForegroundService from "@supersami/rn-foreground-service";
+import { polyfill as polyfillFetch } from 'react-native-polyfill-globals/src/fetch';
+import 'text-encoding-polyfill'
+import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
+
+polyfillFetch();
 ReactNativeForegroundService.register();
 /* ReactNativeForegroundService.eventListener((e)=>{
   Alert.alert("ok")
@@ -48,7 +54,7 @@ let id=null
 let socket=null
 let call1=null
 let callnotif=null
-//let server ="http://192.168.104:3001"
+//let server ="http://192.168.106:3001"
 let server ="https://smartifier.onrender.com"
 const d =new ShortUniqueId({length:10})
 //const {state,authContext,img,remoteRTCMessage,seticall,icall,currentconv,setmessages,istoday,stat,setstat} = useAuthorization()

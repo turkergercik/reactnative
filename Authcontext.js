@@ -31,7 +31,7 @@ export function Auth({children,socketi}){
     const messageRef =useRef()
     const rr =useRef(false)
     const offlinepause = useRef({audio:true,video:true}) 
-    //let server ="http://192.168.1.104:3001"
+    //let server ="http://192.168.1.106:3001"
     const server = "https://smartifier.onrender.com"
     const socket = useRef(null)
     const socketbackup = useRef(null)

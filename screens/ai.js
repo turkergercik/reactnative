@@ -44,6 +44,11 @@ import InCallManager from 'react-native-incall-manager';
 import RNCallKeep from 'react-native-callkeep'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
+import { ReadableStream, WritableStream, TransformStream } from 'web-streams-polyfill';
+import RNFetchBlob from 'rn-fetch-blob'
+import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
+globalThis.ReadableStream = ReadableStream;
 //import ReactNativeForegroundService from "@supersami/rn-foreground-service";
 let   COOKIE_KEY ="g.a000iAjKuN70WDKaBm99O90_3RmDarUy75u4EyrTVKnbxVIS2EgCZOuIzfisVEapu7zmpTKcfAACgYKAR0SAQASFQHGX2MiWEAZRRxDvez1m56Vv-y2pRoVAUF8yKrrrNUGQBIzsyII28Mjbw6O0076"
 const API_KEY ="AIzaSyCLk9WSnLZhhmP8QEQGl2250pGR6JwAGAk"
@@ -60,7 +65,7 @@ let img
   delay: 1000,
   onLoop: true,
   taskId: "taskid",
-  onError: (e) => console.log(`Error logging:`, e),
+  onError: (e) => //console.log(`Error logging:`, e),
 }); */
 
 
@@ -165,7 +170,7 @@ let initialLoadNumber = 40
   const key = useSharedValue(0)
   const stickydatestyle = useSharedValue(as)
   const scrollHandler = useAnimatedScrollHandler((event) => {
-    console.log("45")
+    //console.log("45")
     scrollY.value = event.contentOffset.y})
   const {fontScale} = useWindowDimensions(); // import useWindowDimensions()
 /*   const data=[{"__v": "_id": "640f77ce4adac71e5768f41a", "conversationid": "6373375a8f3d293cc082f78f", "createdAt": "2023-03-13T19:21:50.384Z", "sender": "62d6c7b8f4925109c40a5ae1", "text": "J", "updatedAt": "2023-03-13T19:21:50.384Z"}, 
@@ -204,7 +209,7 @@ let na={
   let id= route?.params?.id
   const history = useRef(route?.params?.history) 
   currentconv.current="ai"
-  console.log(history.current,8888888)
+  //console.log(history.current,8888888)
   let notid= route?.params?.notid
   let pp = route?.params?.pp
   let mpeop =route?.params?.mpeop
@@ -237,6 +242,7 @@ let na={
   const canvas=useRef(null)
   //const allm =useRef([])
   const[text,settext]=useState(null)
+  const[chunks,setchunks]=useState([])
   const[toph,settoph]=useState(Dimensions.get("screen").height)
   const[stickydate,setstickydate]=useState(null)
   const[searchmode,setsearchmode]=useState(false)
@@ -299,12 +305,12 @@ let na={
     };
     async function initw(){
       await Bard.init(COOKIE_KEY );
-      console.log(await askAI("hello"))
+      //console.log(await askAI("hello"))
       Alert.alert("ok")      
     }
   const genAI = new GoogleGenerativeAI(API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-pro",safetySettings:safetySettings,generationConfig:generationConfig});
-  console.log(history.current,44)
+  //console.log(history.current,44)
   const chat = model.startChat({safetySettings:safetySettings,history:history.current})
 
   useEffect(()=>{
@@ -392,7 +398,7 @@ useEffect(() => {
   hasAndroidPermission()
   
   check.current=newchat
-  console.log(check.current)
+  //console.log(check.current)
   //StatusBar.setBackgroundColor("red")
   //SystemNavigationBar.setNavigationColor("red")
 
@@ -442,7 +448,7 @@ const pan = Gesture.Pan().onUpdate((a)=>{
   if(zoom1.value===false){
   translationX.value=(a.translationX+lastx.value)/scale.value
   translationY.value=(a.translationY+lasty.value)
-  console.log(a.absoluteY)}
+  //console.log(a.absoluteY)}
 
 
 }).onEnd((a)=>{
@@ -506,7 +512,7 @@ function groupedDays(messages) {
   return messages.reduce((acc, el) => {
     //console.log(el)
     const messageDay = new Date(el.createdAt).toDateString()
-    console.log(messageDay,78)
+    //console.log(messageDay,78)
     if (acc[messageDay]) {
       return { ...acc, [messageDay]: acc[messageDay].concat([el]) };
     }
@@ -587,8 +593,8 @@ async function setnewmessages(){
   if(allm.current.length!==0){
     page.current=page.current+1
     let m = allm.current.slice(0,page.current*40)
-    console.log(page.current)
-    console.log("bok")
+    //console.log(page.current)
+    //console.log("bok")
     dispatch(setmessages(m))
   }
 }
@@ -617,7 +623,7 @@ async function all(){
         x.push(i)
       }
     })
-   console.log(x,585858)
+   //console.log(x,585858)
     setheadersarr(x.reverse())
     //console.log(allm.current,554)
   }
@@ -690,7 +696,7 @@ setinp(true)
 }
 /* useEffect(() => { 
   if(img){
-    console.log("ok")
+    //console.log("ok")
      //SystemNavigationBar.stickyImmersive()
     //translationY.value=0
    }
@@ -740,7 +746,7 @@ setTimeout(() => {
   //console.log(x,indexes,55555)
   /* function doSetTimeout(i) {
     setTimeout(() => {
-      console.log("2")
+      //console.log("2")
       scroll.current.scrollToIndex({
         animated: true,
         index: i,
@@ -763,7 +769,7 @@ async function sendTextMessage(media1){
   settext(null) */
   //animate.current?.prepareForLayoutAnimationRender()
   //LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
-  console.log(currentconv.current,state.userName)
+  //console.log(currentconv.current,state.userName)
   inputT.current.clear()
   let x = input.current
   input.current=null
@@ -776,7 +782,7 @@ async function sendTextMessage(media1){
 
     }
   let date=Date.now()
-  console.log(date)
+  //console.log(date)
 
     let newmessage={
       _id:date,
@@ -787,9 +793,10 @@ async function sendTextMessage(media1){
       text:x,
       createdAt:date,
     }
+    
     if(media1){
       newmessage.media=media1
-      console.log(media1)
+      //console.log(media1)
     }
 
    
@@ -819,7 +826,7 @@ async function sendTextMessage(media1){
 
         //settext(null)
         allm.current=[newmessage,a,...allm.current]
-        console.log(allm.current,555)
+        //console.log(allm.current,555)
         today.current=true
      
      
@@ -839,32 +846,78 @@ async function sendTextMessage(media1){
     }
     setmenu(true)
     let ndate = Date.now()
+    console.log(newmessage._id,ndate)
     const prompt = "1"
     //history.current.push({role:"user", parts: [{ text: newmessage.text}]})
-   console.log(history.current)
-    const result = await chat.sendMessage(newmessage.text)
+   //console.log(history.current)
+    /* const result = await chat.sendMessage(newmessage.text)
     const response = result.response;
   const text = response.text();
   settypings(false)
     //history.current.push({role:"model", parts: [{ text: text}]})
-    console.log(text);
+    //console.log(text); */
+    let data= null
+    const response = await fetch(`${server}/ai/${state.userId}`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ messages: newmessage.text }),
+      reactNative: { textStreaming: true }
+  });
+   
+   
+    const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let done = false;
+      let val=""
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          val = val + chunk.trim()
+          setchunks((e)=>[...e,{_id:ndate,text:chunk.trim(),createdAt:ndate}])
+          if(allm.current[0].hasOwnProperty("sender")){
+            allm.current=[{_id:ndate,text:val,createdAt:ndate},...allm.current]
+            setmessages((e)=>[{_id:ndate,text:val,createdAt:ndate},...e])
+            
+          }else{
+            setmessages(prevItems => {
+              if (prevItems.length === 0) return prevItems; // If array is empty, return as is
+        
+              const updatedItems = prevItems.map((item, index) =>
+                index === 0 ? { ...item, text: val } : item
+              );
+        
+              return updatedItems;
+            });
+          }
+          
+          console.log(chunk,78)
+        }
+      }
+      settypings(false)
     storage.set("hai",JSON.stringify(history.current))
     /* const result = await chat.(newmessage.text.toString());
     const response = await  result.response;
     const text = response.text(); */
-    setmessages((e)=>[{_id:ndate,text:text,createdAt:ndate},...e])
-    allm.current=[{_id:ndate,text:text,createdAt:ndate},...allm.current]
+    //setmessages((e)=>[{_id:ndate,text:text,createdAt:ndate},...e])
+    const updatedItems = allm.current.map((item, index) =>
+      index === 0 ? { ...item, text: val } : item
+    );
+    allm.current=[...updatedItems]
     storage.set("ai",JSON.stringify(allm.current))
-    console.log(allm.current);
+    //console.log(allm.current);
     
    /*  setTimeout(async() => {
       try {
           storage.set(currentconv.current,JSON.stringify(allm.current))
           setlastmesssages(currentconv.current)
           await axios.post(`${prt}/messages`,newmessage).then(()=>{
-            console.log("gg")
+            //console.log("gg")
           }).catch((e)=>{
-            console.log(e)
+            //console.log(e)
           })
         
   
@@ -880,16 +933,16 @@ async function sendTextMessage(media1){
 
   
   }else{
-    console.log("nol")
+    //console.log("nol")
   }
-  console.log(text)
+  //console.log(text)
    setcompleted(true)
 }
 
 
 useEffect(()=>{
   if(messages.length>=150){
-    console.log("45454545")
+    //console.log("45454545")
     setTimeout(() => {
       
       /* scroll.current.scrollToIndex({
@@ -904,7 +957,7 @@ useEffect(()=>{
 
   }
   
-  console.log(somemessages.length,757575)
+  //console.log(somemessages.length,757575)
 if(focus===true){
   setTimeout(() => {
     
@@ -953,7 +1006,7 @@ if(e){
   }
   
   transX.value=e.translationX
-  console.log("ok")
+  //console.log("ok")
 }).onEnd((e)=>{
 
   if(e.translationX < width/2){
@@ -965,7 +1018,7 @@ if(e){
             }) 
   return
     }
-    console.log("bok")
+    //console.log("bok")
     
     transX.value= withTiming(0,300,(e)=>{
 
@@ -1015,7 +1068,7 @@ console.log(e)
       //marginTop:keyboard.value? keyboard.value:0
     };
   });
- console.log(keyboard.value)
+ //console.log(keyboard.value)
   const translateStyle12 = useAnimatedStyle(() => {
     return {
      marginTop:st.value
@@ -1110,7 +1163,7 @@ const onViewableItemsChanged = ({ viewableItems }) => {
           t= new Date(m).toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"})
       }
     }else{
-      console.log(12)
+      //console.log(12)
       t=new Date(m).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"})
   
     }
@@ -1159,11 +1212,11 @@ function updateheader({ viewableItems, changed }){
         t= new Date(m).toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"})
     }
   }else{
-    console.log(12)
+    //console.log(12)
     t=new Date(m).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"})
 
   }
-  console.log(new Date(m).getFullYear(),now.getFullYear())
+  //console.log(new Date(m).getFullYear(),now.getFullYear())
   setstickydate(t)
       
      }
@@ -1208,7 +1261,7 @@ function hideDialog(){
 
              </View><View style={{ flexDirection: "row", alignItems: "center" }}>
              <IconButton icon={"draw"} size={30} iconColor='white' rippleColor={"grey"} style={{ margin: 0 }} onPress={() => {
-                   console.log("ol")
+                   //console.log("ol")
                    /* setstat(true)
                    setTimeout(() => {
                      setstat(false)
@@ -1225,7 +1278,7 @@ function hideDialog(){
 
                  </IconButton>
                  <IconButton icon={"video"} size={30} iconColor='white' rippleColor={"grey"} style={{ margin: 0 }} onPress={ async() => {
-                   console.log("ol")
+                   //console.log("ol")
                    /* setstat(true)
                    setTimeout(() => {
                      setstat(false)
@@ -1261,7 +1314,7 @@ function hideDialog(){
 
                  </IconButton>
                  <IconButton icon={"phone"} size={25} iconColor='white' rippleColor={"grey"} style={{ margin: 0 }} onPress={async() => {
-                   console.log("ol")
+                   //console.log("ol")
                    /* setstat(true)
                    setTimeout(() => {
                      setstat(false)
@@ -1301,7 +1354,7 @@ function hideDialog(){
                         anchorPosition="top"
                         anchor={
                           <IconButton icon={"dots-vertical"} size={30} iconColor='white' rippleColor={"grey"} style={{ margin: 0 }} onPress={() => {
-                            console.log("ol")
+                            //console.log("ol")
                             /* setstat(true)
                             setTimeout(() => {
                               setstat(false)
@@ -1432,7 +1485,7 @@ function hideDialog(){
                         }, 100);
 
 
-                       console.log("ıkık")
+                       //console.log("ıkık")
                         const wait = new Promise(resolve => setTimeout(resolve, 0));
                         wait.then(() => {
                           scroll.current.scrollToEnd({
@@ -1469,7 +1522,7 @@ stickydatevalue.current=true
                 onScroll ={ (event) => {
                   
                   clearTimeout(ssd)
-                  console.log(stickydatevalue.current)
+                  //console.log(stickydatevalue.current)
                  
                  
                   
@@ -1507,7 +1560,7 @@ stickydatevalue.current=true
                  data={messages}
                  renderItem={({item,index,target}) => {
                 
-                    return <Mess toph={toph} fontscale={fontScale} offset={offsets} inp={inputT} id={id} typing={typings}  messages={item} rr={rr} setstat={setstat} allmess={messages} key={item._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={index} pd={st} />
+                    return <Mess toph={toph} allm={allm} chunks={chunks} fontscale={fontScale} offset={offsets} inp={inputT} id={id} typing={typings}  messages={item} rr={rr} setstat={setstat} allmess={messages} key={item._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={index} pd={st} />
 
                  
                   
@@ -1520,7 +1573,7 @@ stickydatevalue.current=true
                     ref={scroll}
                     
                     
-                    estimatedItemSize={messages.length}
+                    estimatedItemSize={20}
                    
                   viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
                   
@@ -1605,7 +1658,7 @@ stickydatevalue.current=true
                     {
                       //settext(null)
                       /* let date=Date.now()
-                      console.log(date)
+                      //console.log(date)
                     
                         let newmessage={
                           _id:date,

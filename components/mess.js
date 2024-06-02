@@ -1,10 +1,10 @@
 import { View, Text,Image,StyleSheet,Dimensions, TouchableOpacity,Modal,useWindowDimensions, Alert,PermissionsAndroid, TouchableNativeFeedback, Easing } from 'react-native'
-import React,{useState,memo,useEffect} from 'react'
+import React,{useState,memo,useEffect, useRef} from 'react'
 //import ImageView from "react-native-image-viewing";
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthorization } from '../Authcontext';
-import Animated,{LinearTransitionrr,SlideInLeft, SlideInUp,SlideInDown,SlideOutDown} from 'react-native-reanimated';
+import Animated,{LinearTransition,SlideInLeft, SlideInUp,SlideInDown,SlideOutDown, FadeIn, FadeInRight, FadeInLeft, measure} from 'react-native-reanimated';
 import { CameraRoll } from "@react-native-camera-roll/camera-roll";
 import { permissions } from 'react-native-webrtc';
 import { Buffer } from 'buffer';
@@ -13,7 +13,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import FileViewer from "react-native-file-viewer";
 import Gallery, { GalleryRef } from 'react-native-awesome-gallery';
 import { Portal,Dialog ,Button,Avatar} from 'react-native-paper';
-const Mess = ({messages,allmess,fontscale,setimg,userId,k,style1,st,inp,id,typing,offset,toph,header}) => {
+import { FadeFromBottomAndroid } from '@react-navigation/stack/lib/typescript/src/TransitionConfigs/TransitionPresets';
+import TypeWriter from 'react-native-typewriter'
+import TypingEffect from './typing';
+let intervalId=null
+const Mess = ({messages,allmess,fontscale,setimg,userId,k,style1,st,inp,id,typing,offset,toph,header,chunks,allm}) => {
   //const {typing,setsomemessages} =useAuthorization()
   
   const [h, seth] = useState(50);
@@ -29,6 +33,8 @@ const Mess = ({messages,allmess,fontscale,setimg,userId,k,style1,st,inp,id,typin
   } */
   const [typings,settypings]=useState(false)
 const nav =useNavigation()
+const [mchunks,setmchunks]=useState([{text:""}])
+//let chunks=[{test:"gth"}]
 let before = allmess[k+1]
 let after = allmess[k-1]
   const [visible, setIsVisible] = useState(false);
@@ -36,6 +42,54 @@ let after = allmess[k-1]
   let na={
     id:userId
   }
+  let index2 = useRef(0)
+  /* useEffect(()=>{
+    if(messages.text!==undefined && messages.text!==null){
+      
+      chunks.map((item,index)=>{
+       let t= item.text.split("")
+       t.map((item1,index1)=>{
+        setTimeout(() => {
+          setmchunks((prevItems)=>{
+            return prevItems.map((item, i) => {
+              if (i === index) {
+                return { text: item.text+item1};
+              }
+              return item;
+          })
+        })
+        }, 10*index1);
+          
+       })
+          
+      })
+     
+    }
+
+  
+
+
+  },[chunks]) */
+  const [displayedText, setDisplayedText] = useState('');
+  useEffect(() => {
+    if(messages.text){
+    let currentIndex = 0;
+
+     intervalId = setInterval(() => {
+      setDisplayedText((prev) => prev + messages.text[currentIndex]);
+      currentIndex++;
+
+      if (currentIndex >= messages.text.length) {
+        clearInterval(intervalId);
+      }
+    }, 100);}
+
+    return () => {
+      
+        clearInterval(intervalId)
+
+      }
+  }, []);
 /*   const images = [
     {
       uri: messages.media,
@@ -167,7 +221,7 @@ if(header===true){
     >
       <Image  style={{height:200,width:200,resizeMode:"cover",borderRadius:h/2.4,borderBottomRightRadius:mode.after? h/2.4:5,borderTopRightRadius: mode.before?h/2.4:5,}} source={{uri:messages.media}} />
       
-      </TouchableOpacity>:<Text style={{fontSize:23/fontscale,fontWeight:"300",color:"white",paddingLeft:3,flexShrink:1}}>{messages.text}</Text>
+      </TouchableOpacity>:<Animated.Text entering={FadeIn.duration(300)} style={{fontSize:23/fontscale,fontWeight:"300",color:"white",paddingLeft:3,flexShrink:1}}>{messages.text}</Animated.Text>
       }
     <Text style={{alignSelf:"flex-end",fontSize:11,fontWeight:"300",color:"rgba(255,255,255,0.5)",paddingHorizontal:mode.after ? 3:0,paddingLeft:5,paddingRight:messages.media?10:0}}>{time}</Text>
     </View>
@@ -244,7 +298,39 @@ if(header===true){
       onLongPress={()=>{
         setIsVisible(messages.media)
       }}
-      ><Image  style={{height:200,width:200,resizeMode:"cover",borderRadius:h/2.4,borderBottomLeftRadius:mode.after? h/2.4:5,borderTopLeftRadius: mode.before?h/2.4:5}} source={{uri:messages.media}} /></TouchableOpacity>:<Text style={{fontSize:23/fontscale,fontWeight:"300",color:"white",paddingRight:5,paddingLeft:3,flexShrink:1}}>{messages.text}</Text>}
+      ><Image  style={{height:200,width:200,resizeMode:"cover",borderRadius:h/2.4,borderBottomLeftRadius:mode.after? h/2.4:5,borderTopLeftRadius: mode.before?h/2.4:5}} source={{uri:messages.media}} /></TouchableOpacity>
+      : chunks!==undefined && chunks.length!==0 && chunks[0]._id===messages._id ? 
+      <View style={{flex:1}}>
+      <View style={{flexShrink:0,flexWrap:"wrap",flexDirection:"row"}}>
+      {
+        <TypingEffect
+        text={displayedText}
+        style={{
+          flexShrink:1,
+          fontSize: 23 / fontscale,
+          fontWeight: '300',
+          color: 'red',
+          paddingRight: 0,
+          paddingLeft: 3,
+          marginBottom: 0, // Optional: Adjust spacing between chunks
+        }}></TypingEffect>
+      /* mchunks.map((item, index) => (
+        <Animated.Text
+          key={index}
+          style={{
+            flexShrink:1,
+            fontSize: 23 / fontscale,
+            fontWeight: '300',
+            color: 'red',
+            paddingRight: 0,
+            paddingLeft: 3,
+            marginBottom: 0, // Optional: Adjust spacing between chunks
+          }}>{item.text}</Animated.Text>
+      )) */
+      
+      }
+    </View>
+    </View>:<Animated.Text style={{fontSize:23/fontscale,fontWeight:"300",color:"white",paddingRight:5,paddingLeft:3,flexShrink:1}}>{messages.text}</Animated.Text>}
       <Text style={{alignSelf:"flex-end",fontSize:11,fontWeight:"300",color:"rgba(255,255,255,0.6)",paddingRight:messages.media?10:1}}>{time}</Text>
       </LinearGradient>
 

@@ -38,7 +38,7 @@ public class ReactNativeFlipper {
       client.addPlugin(new SharedPreferencesFlipperPlugin(context));
       client.addPlugin(CrashReporterPlugin.getInstance());
 
-      NetworkFlipperPlugin networkFlipperPlugin = new NetworkFlipperPlugin();
+      /* NetworkFlipperPlugin networkFlipperPlugin = new NetworkFlipperPlugin();
       NetworkingModule.setCustomClientBuilder(
           new NetworkingModule.CustomClientBuilder() {
             @Override
@@ -46,7 +46,7 @@ public class ReactNativeFlipper {
               builder.addNetworkInterceptor(new FlipperOkhttpInterceptor(networkFlipperPlugin));
             }
           });
-      client.addPlugin(networkFlipperPlugin);
+      client.addPlugin(networkFlipperPlugin); */
       client.start();
 
       // Fresco Plugin needs to ensure that ImagePipelineFactory is initialized

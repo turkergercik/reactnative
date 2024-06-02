@@ -124,10 +124,10 @@ const Chat = ({navigation}) => {
   
   }
   async function navtoai(){
-   
     const mess= storage.getString("ai")
     const history = storage.getString("hai")
     if(mess && history){
+      
        let h = JSON.parse(history)
        console.log(h,27)
         setmessages(JSON.parse(mess))
@@ -398,8 +398,8 @@ const Chat = ({navigation}) => {
             <TouchableNativeFeedback
              background={TouchableNativeFeedback.Ripple("white",true)}
              onPress={()=>{
-              pause.stopservice()
-              //navtoai()
+              //pause.stopservice()
+              navtoai()
               
              }} activeOpacity={0.5}
             >
@@ -414,8 +414,8 @@ const Chat = ({navigation}) => {
       <FAB
       icon="plus" mode="elevated" customSize={70} color='white' rippleColor={"white"} 
       onPress={()=>{
-        pause.startservice()
-        //change()
+        //pause.startservice()
+        change()
       }}
       style={{justifyContent:"center",alignItems:"center",width:70,height:70,backgroundColor:"#6538c6",borderRadius:40}}>
 
