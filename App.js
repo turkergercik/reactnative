@@ -52,6 +52,8 @@ import PushNotification, {Importance} from 'react-native-push-notification';
 import Callscreen from "./screens/callvideoscreen";
 import CustomVideocall from "./screens/customvideocall";
 import Ai from "./screens/ai";
+import Smartthings from "./screens/smartthing";
+import Smartdevicesetup from "./screens/Smartdevicesetup";
 const {pause}=NativeModules
 let {width,height}=Dimensions.get("window")
 let mode=null
@@ -1590,6 +1592,8 @@ console.log(icall,22222222333)
           <Stack.Screen name="Takephoto" component={Take} options={{cardStyle:{backgroundColor:"black"},orientation:"portrait",presentation:"transparentModal",contentStyle:{backgroundColor:"black"},cardStyleInterpolator:CardStyleInterpolators.forBottomSheetAndroid,animation:"slide_from_bottom"}}/>
           <Stack.Screen name="Draw" component={Draw} options={{cardStyle:{backgroundColor:"black"},orientation:"portrait",presentation:"transparentModal",contentStyle:{backgroundColor:"black"},cardStyleInterpolator:CardStyleInterpolators.forBottomSheetAndroid,animation:"slide_from_bottom"}}/>
           <Stack.Screen name="Ai" component={Ai} options={{cardStyle:{backgroundColor:"black"},orientation:"portrait",presentation:"transparentModal",contentStyle:{backgroundColor:"black"},cardStyleInterpolator:CardStyleInterpolators.forBottomSheetAndroid,animation:"slide_from_bottom"}}/>
+          <Stack.Screen name="Smartthings" component={Smartthings} options={{cardStyle:{backgroundColor:"black"},orientation:"portrait",contentStyle:{backgroundColor:"black"}}}/>
+          <Stack.Screen name="Smartdevicesetup" component={Smartdevicesetup} options={{cardStyle:{backgroundColor:"black"},orientation:"portrait",contentStyle:{backgroundColor:"black"}}}/>
 
           </>
         )}

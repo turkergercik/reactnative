@@ -17,7 +17,7 @@ import { FadeFromBottomAndroid } from '@react-navigation/stack/lib/typescript/sr
 import TypeWriter from 'react-native-typewriter'
 import TypingEffect from './typing';
 let intervalId=null
-const Mess = ({messages,allmess,fontscale,setimg,userId,k,style1,st,inp,id,typing,offset,toph,header,chunks,allm}) => {
+const Mess = ({messages,allmess,fontscale,setimg,userId,k,style1,st,inp,id,typing,offset,toph,header,chunks,allm,settypings,setchunks}) => {
   //const {typing,setsomemessages} =useAuthorization()
   
   const [h, seth] = useState(50);
@@ -31,7 +31,7 @@ const Mess = ({messages,allmess,fontscale,setimg,userId,k,style1,st,inp,id,typin
     }
     
   } */
-  const [typings,settypings]=useState(false)
+  
 const nav =useNavigation()
 const [mchunks,setmchunks]=useState([{text:""}])
 //let chunks=[{test:"gth"}]
@@ -70,26 +70,7 @@ let after = allmess[k-1]
 
 
   },[chunks]) */
-  const [displayedText, setDisplayedText] = useState('');
-  useEffect(() => {
-    if(messages.text){
-    let currentIndex = 0;
-
-     intervalId = setInterval(() => {
-      setDisplayedText((prev) => prev + messages.text[currentIndex]);
-      currentIndex++;
-
-      if (currentIndex >= messages.text.length) {
-        clearInterval(intervalId);
-      }
-    }, 100);}
-
-    return () => {
-      
-        clearInterval(intervalId)
-
-      }
-  }, []);
+ 
 /*   const images = [
     {
       uri: messages.media,
@@ -304,12 +285,16 @@ if(header===true){
       <View style={{flexShrink:0,flexWrap:"wrap",flexDirection:"row"}}>
       {
         <TypingEffect
-        text={displayedText}
+        onLastMessageTyped={()=>{settypings(false)
+          setchunks([])
+        }}
+        typingSpeed={50}
+        message={messages.text}
         style={{
           flexShrink:1,
           fontSize: 23 / fontscale,
           fontWeight: '300',
-          color: 'red',
+          color: 'white',
           paddingRight: 0,
           paddingLeft: 3,
           marginBottom: 0, // Optional: Adjust spacing between chunks

@@ -29,10 +29,13 @@ export function Auth({children,socketi}){
     const routeNameRef =useRef()
     const allm =useRef([])
     const messageRef =useRef()
+    const index =useRef(0)
     const rr =useRef(false)
+    const chunkIndex = useRef(0);
+    const charIndex = useRef(0);
     const offlinepause = useRef({audio:true,video:true}) 
-    //let server ="http://192.168.1.106:3001"
-    const server = "https://smartifier.onrender.com"
+    let server ="http://192.168.1.106:3001"
+    //const server = "https://smartifier.onrender.com"
     const socket = useRef(null)
     const socketbackup = useRef(null)
     const rtcm =useRef()
@@ -151,7 +154,7 @@ export function Auth({children,socketi}){
         []
       );
 return(
-<AuthContext.Provider value={{setorder,order,settrigger,trigger,incall,invc,setinvc,lastmesssages,setlastmesssages,currentother,typing,settyping,inchat,setinchat,onlines,setonlines,menuopens,somemessages,setsomemessages,socketbackup,cam,setsoc,soc,camopen,setcamopen,ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
+<AuthContext.Provider value={{chunkIndex,charIndex,index,setorder,order,settrigger,trigger,incall,invc,setinvc,lastmesssages,setlastmesssages,currentother,typing,settyping,inchat,setinchat,onlines,setonlines,menuopens,somemessages,setsomemessages,socketbackup,cam,setsoc,soc,camopen,setcamopen,ss,setss,navbar,setnavbar,calli,setcalli,allm,check,myconv,offlinepause,rr,setrot,rot,setstat,stat,istoday,authContext,state,routeNameRef,mesnotif,setmesnotif,keyboard,setkeyboard,setIsVisible,mpeop,setmpeop,auth,setauth,peop,setpeop,messages,setmessages,currentconv,messageRef,server,userId,setuserId,socket,remoteRTCMessage,callst,userToken,setuserToken,img,setimg,setgest,gest,icall,seticall}}>
 {children}
 </AuthContext.Provider>
 )

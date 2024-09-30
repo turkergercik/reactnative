@@ -1,31 +1,34 @@
+import React, { useState, useEffect } from 'react';
+import { Text, View } from 'react-native';
 
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
 
-const TypingEffect = ({ text }) => {
-    
-  const [displayedText, setDisplayedText] = useState('');
-  const [index, setIndex] = useState(0);
+const TypingText = ({ message,onLastMessageTyped,style}) => {
+  const [typedMessage, setTypedMessage] = useState('');
+  const [index, setindex] = useState(0);
 
   useEffect(() => {
-    if (index < text.length) {
-      const timeout = setTimeout(() => {
-        setDisplayedText(displayedText + text.charAt(index));
-        setIndex(index + 1);
-      }, 100); // Adjust the speed of typing here
-      return () => clearTimeout(timeout);
-    }
-  }, [index, text, displayedText]);
+    let interval = setInterval(() => {
+      if (index < message.length) {
+        setTypedMessage(prevTypedMessage => prevTypedMessage + message[index]);
+        setindex(index+1)
+      } else {
+        clearInterval(interval);
+        if (index === message.length) {
+          onLastMessageTyped(); // Notify parent when the last message is typed
+        }
+      }
+    }, 0);
 
-  return <Text style={{
-    flexShrink:1,
-    fontSize: 20,
-    fontWeight: '300',
-    color: 'red',
-    paddingRight: 0,
-    paddingLeft: 3,
-    marginBottom: 0, // Optional: Adjust spacing between chunks
-  }}>{displayedText}</Text>;
+    return () => clearInterval(interval);
+  }, [message,index,onLastMessageTyped]);
+
+
+
+  return (
+
+      <Text style={style}>{typedMessage}</Text>
+
+  );
 };
 
-export default TypingEffect 
+export default TypingText;

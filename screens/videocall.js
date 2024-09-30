@@ -583,8 +583,8 @@ socket.current.emit("offlinepause",otherid,"audio",state.userId)
 
       async function togglemenu(){
         if(menu.current===false){
-          ty1.value=withTiming(-75-as,{duration:150})
-          tY.value=withTiming(95+48,{duration:150})
+          ty1.value=withTiming(-75-as,{duration:500})
+          tY.value=withTiming(95+48,{duration:500})
           menu.current=true
           SystemNavigationBar.navigationHide()
           StatusBar.setHidden(true)

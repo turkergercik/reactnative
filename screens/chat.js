@@ -57,6 +57,9 @@ const Chat = ({navigation}) => {
   const [mute, setmute] = useState(false);
   const [mutelocal, setmutelocal] = useState(false);
   const [mypp, setmypp] = useState(null);
+  const [active, setActive] = useState('');
+  const [open, setopen] = useState(false);
+  const tx =useSharedValue(width)
   //const isopen = useSharedValue(null)
   const images = [
     {
@@ -124,6 +127,7 @@ const Chat = ({navigation}) => {
   
   }
   async function navtoai(){
+    
     const mess= storage.getString("ai")
     const history = storage.getString("hai")
     if(mess && history){
@@ -288,56 +292,17 @@ const Chat = ({navigation}) => {
       title: 'Third Item',
     },
   ];
-  const [active, setActive] = useState('');
-  const [open, setopen] = useState(false);
-  const tx =useSharedValue(width)
+  
   const kstyle = useAnimatedStyle(() => {
     return {
-     transform:[{translateX:tx.value}]
+     transform:[{translateX:withTiming(tx.value)}]
       //marginTop:keyboard.value? keyboard.value:0
     };
   });
  //#9B0031
   return (
     <>
-    {open ? <View style={{position:"absolute",bottom:0,top:0,left:0,right:0,zIndex:1,flexDirection:"row",justifyContent:"flex-end"}}>
-    <View blurType="chromeMaterial" blurAmount={1} reducedTransparencyFallbackColor="white"  style={{position:"absolute",bottom:0,top:0,right:0,left:0,backgroundColor:"black",opacity:0.8}} >
-          <TouchableOpacity style={{flex:1}} onPress={()=>{
-                  tx.value=withTiming(width,{},(e)=>{
-          if(e){
-            runOnJS(setopen)(false)
-       
-          }
-                  })
-                  
-                  }}>
-
-          </TouchableOpacity>
-    </View>
-    <Animated.View  style={[{borderWidth:2,borderColor:"black",width:"50%",height:"100%",backgroundColor:"#141414",padding:5,paddingHorizontal:10,alignItems:"center",justifyContent:"space-between"},kstyle]}>
-       <View>
-       <TouchableOpacity style={{width:100,height:100}} onPress={()=>setIsVisible(true)}>
-       {mypp ?  <Image source={{uri:mypp}} 
-        style={{width:100,height:100,borderRadius:50,marginTop:StatusBar.currentHeight}}></Image>:<User style={{color:"#6538c6",marginTop:StatusBar.currentHeight}} width={100} height={100} ></User> }
-     
-
-       </TouchableOpacity>
-      
-        <T style={{color:"white",textAlign:"center",fontSize:30,fontWeight:300,marginVertical:5,paddingTop:StatusBar.currentHeight,paddingBottom:15}}>Ayarlar</T>
-
-
-       </View>
-        <Button textColor='grey' style={{height:50,width:"100%",backgroundColor:"black"}} contentStyle={{width:"100%",height:"100%"}} rippleColor={"white"} onPress={async()=>{
-        /* await AsyncStorage.removeItem("userToken")
-        await AsyncStorage.clear() */
-        storage.clearAll()
-        socket.current.close()
-        authContext.signOut()
-        }}>
-          Çıkış Yap
-        </Button>
-    </Animated.View>
-  </View>:<View></View>}
+    
   <View  style={[styles.body]}>
        
 
@@ -468,6 +433,51 @@ const Chat = ({navigation}) => {
       
 
   </View>
+  {open ? <View style={{position:"absolute",bottom:0,top:0,left:0,right:0,zIndex:1,flexDirection:"row",justifyContent:"flex-end"}}>
+    <View blurType="chromeMaterial" blurAmount={1} reducedTransparencyFallbackColor="white"  style={{position:"absolute",bottom:0,top:0,right:0,left:0,backgroundColor:"black",opacity:0.8}} >
+          <TouchableOpacity style={{flex:1}} onPress={()=>{
+            setopen(false)
+                  /* tx.value=withTiming(width,{},(e)=>{
+          if(e){
+            runOnJS(setopen)(false)
+       
+          }
+                  }) */
+                  
+                  }}>
+
+          </TouchableOpacity>
+    </View>
+    <Animated.View entering={SlideInRight}  exiting={SlideOutRight}  style={[{borderWidth:2,borderColor:"black",width:"50%",height:"100%",backgroundColor:"#141414",padding:5,paddingHorizontal:10,alignItems:"center",justifyContent:"flex-start"}]}>
+       <View>
+       <TouchableOpacity style={{width:100,height:100}} onPress={()=>setIsVisible(true)}>
+       {mypp ?  <Image source={{uri:mypp}} 
+        style={{width:100,height:100,borderRadius:50,marginTop:StatusBar.currentHeight}}></Image>:<User style={{color:"#6538c6",marginTop:StatusBar.currentHeight}} width={100} height={100} ></User> }
+     
+
+       </TouchableOpacity>
+      
+        <T style={{color:"white",textAlign:"center",fontSize:30,fontWeight:300,marginVertical:5,paddingTop:StatusBar.currentHeight,paddingBottom:15}}>Ayarlar</T>
+        
+     
+       </View>
+       <Button textColor='grey' style={{height:50,width:"100%",backgroundColor:"black"}} contentStyle={{width:"100%",height:"100%"}} rippleColor={"white"} onPress={()=>{
+         navigation.navigate("Smartthings")
+                     
+       }}>
+          Akıllı Cihazlarım
+        </Button>
+        <Button textColor='grey' style={{height:50,width:"100%",backgroundColor:"black",marginTop:"auto"}} contentStyle={{width:"100%",height:"100%"}} rippleColor={"white"} onPress={async()=>{
+        /* await AsyncStorage.removeItem("userToken")
+        await AsyncStorage.clear() */
+        storage.clearAll()
+        socket.current.close()
+        authContext.signOut()
+        }}>
+          Çıkış Yap
+        </Button>
+    </Animated.View>
+  </View>:null}
   </>
   )
 }

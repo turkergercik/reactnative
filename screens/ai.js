@@ -764,7 +764,7 @@ setTimeout(() => {
 
 
 async function sendTextMessage(media1){
- 
+ setchunks([])
   /* setcompleted(false)
   settext(null) */
   //animate.current?.prepareForLayoutAnimationRender()
@@ -857,7 +857,7 @@ async function sendTextMessage(media1){
     //history.current.push({role:"model", parts: [{ text: text}]})
     //console.log(text); */
     let data= null
-    const response = await fetch(`${server}/ai/${state.userId}`, {
+    const response = await fetch(`https://smartifier-1.onrender.com/ai/${state.userId}`, {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
@@ -876,7 +876,7 @@ async function sendTextMessage(media1){
         done = readerDone;
         if (value) {
           const chunk = decoder.decode(value, { stream: true });
-          val = val + chunk.trim()
+          val = val + chunk.trimEnd()
           setchunks((e)=>[...e,{_id:ndate,text:chunk.trim(),createdAt:ndate}])
           if(allm.current[0].hasOwnProperty("sender")){
             allm.current=[{_id:ndate,text:val,createdAt:ndate},...allm.current]
@@ -897,7 +897,7 @@ async function sendTextMessage(media1){
           console.log(chunk,78)
         }
       }
-      settypings(false)
+      //settypings(false)
     storage.set("hai",JSON.stringify(history.current))
     /* const result = await chat.(newmessage.text.toString());
     const response = await  result.response;
@@ -1560,7 +1560,7 @@ stickydatevalue.current=true
                  data={messages}
                  renderItem={({item,index,target}) => {
                 
-                    return <Mess toph={toph} allm={allm} chunks={chunks} fontscale={fontScale} offset={offsets} inp={inputT} id={id} typing={typings}  messages={item} rr={rr} setstat={setstat} allmess={messages} key={item._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={index} pd={st} />
+                    return <Mess toph={toph} settypings={settypings} allm={allm} chunks={chunks} setchunks={setchunks} fontscale={fontScale} offset={offsets} inp={inputT} id={id} typing={typings}  messages={item} rr={rr} setstat={setstat} allmess={messages} key={item._id} setimg={setimg}  setIsVisible={setIsVisible} userId={state.userId} k={index} pd={st} />
 
                  
                   
