@@ -34,8 +34,8 @@ export function Auth({children,socketi}){
     const chunkIndex = useRef(0);
     const charIndex = useRef(0);
     const offlinepause = useRef({audio:true,video:true}) 
-    let server ="http://192.168.1.106:3001"
-    //const server = "https://smartifier.onrender.com"
+    //let server ="http://192.168.1.106:3001"
+    const server = "https://smartifier.onrender.com"
     const socket = useRef(null)
     const socketbackup = useRef(null)
     const rtcm =useRef()

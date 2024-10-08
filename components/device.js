@@ -2,19 +2,23 @@ import { View, Text } from 'react-native'
 import React ,{useState} from 'react'
 import { useAuthorization } from '../Authcontext';
 import { Portal,Modal,Switch,Button } from 'react-native-paper';
-const Device = ({item}) => {
+const Device = ({item,socket}) => {
 
-  const{state,socket}=useAuthorization()
+  const{state}=useAuthorization()
   const [visible, setVisible] = useState(false);
   
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
   const onToggleSwitch = (id) => {
-      console.log(item.item
-      )
       const currentStatus = item.status;
+      console.log(item.status)
       const newStatus = !currentStatus; // Toggle the current status
       socket.current.emit('light', { userid: state.userId, id: id, status: newStatus });
+      if(item.status===true){
+        item.status=false
+      }else{
+        item.status=true
+      }
       // Do not update the UI locally, wait for the server response in socket.on('update')
   
   };

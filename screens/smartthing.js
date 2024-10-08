@@ -1,67 +1,80 @@
-import { View, Text, StatusBar } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
+import { View, Text, StatusBar, Alert } from 'react-native'
+import React, { useEffect, useRef, useState,useCallback } from 'react'
 import { Button } from 'react-native-paper'
 import { useAuthorization } from '../Authcontext'
 import { Switch,Modal,Portal,FAB } from 'react-native-paper';
+import { useFocusEffect } from '@react-navigation/native';
+import { io } from 'socket.io-client';
 import Device from '../components/device';
+
 const Smartthings = ({navigation}) => {
-  const {socket,server,state}=useAuthorization()
+  const {server,state}=useAuthorization()
   const [devices,setdevices]=useState([])
   const devicelist=useRef([])
+  const socket=useRef(null)
   const status = useRef(false)
   
   const containerStyle = {backgroundColor: 'white',};
   const [isSwitchOn, setIsSwitchOn] = useState(false);
-  useEffect(()=>{
-    
-    socket.current.emit("smartdevices",state.userId)
-    socket.current.on("smartdeviceslist",(item)=>{
-       
-        let alldevices = JSON.parse(item) 
-        devicelist.current=[...devicelist.current,...alldevices]
-        setdevices((e)=>[...e,...alldevices])
-        
-   
-      })
-      socket.current.on("update",(id,status)=>{
-        
-        console.log(id)
-        const index = devicelist.current.findIndex(item => item.id === id);
-        if (index !== -1) {
-          //const updatedItems = [...devices];
-          console.log(index,78)
-          devicelist.current[index].status=status
-          console.log(devicelist.current[index].status,status)
-          setdevices([...devicelist.current]);
-        }
-        /* etdevices((prevItems) => {
-          const index = prevItems.findIndex(item => item.id === id);
+  
+  useFocusEffect(
+    useCallback(()=>{
+      
+      socket.current=io(server)
+
+      
+      socket.current.emit("smartdevices",state.userId)
+      socket.current.on("smartdeviceslist",(item)=>{
+          let alldevices = JSON.parse(item) 
+          devicelist.current=alldevices
+          setdevices(alldevices)
+          
+     
+        })
+        socket.current.on("update",(id,status)=>{
+          
+          console.log(id)
+          const index = devicelist.current.findIndex(item => item.id === id);
           if (index !== -1) {
-            const updatedItems = [...prevItems];
-            updatedItems[index].value = status;
-            return updatedItems;
+            //const updatedItems = [...devices];
+            //console.log(index,78)
+            devicelist.current[index].status=status
+            //console.log(devicelist.current[index].status,status)
+            setdevices([...devicelist.current]);
           }
-          return prevItems;
-        }); */
-        console.log(status)
-        /* setdevices((e)=>{
-            let index = e.findIndex((item)=>item.id===id)
-            if(index!==-1){
-               e[index].status=status
-               return e
+          /* etdevices((prevItems) => {
+            const index = prevItems.findIndex(item => item.id === id);
+            if (index !== -1) {
+              const updatedItems = [...prevItems];
+              updatedItems[index].value = status;
+              return updatedItems;
             }
-        }) */
-        
-        
-   
-      })
-
-    return ()=>{
-      //setdevices([])
-    }
-   
-
-  },[])
+            return prevItems;
+          }); */
+          //console.log(status)
+          /* setdevices((e)=>{
+              let index = e.findIndex((item)=>item.id===id)
+              if(index!==-1){
+                 e[index].status=status
+                 return e
+              }
+          }) */
+          
+          
+     
+        })
+      
+      return ()=>{
+        console.log("kkkk")
+        socket.current.disconnect()
+        socket.current=null
+        setdevices([])
+      }
+     
+  
+    },[])
+  );
+ 
   
 
   /* const onToggleSwitch = (ids) => {
@@ -85,9 +98,10 @@ const Smartthings = ({navigation}) => {
       </View>  
       {
           devices.map((item,i)=>{
+            console.log(item)
             
           return <View style={{flex:1}} key={i}>
-            <Device item={item} ></Device>
+            <Device item={item} socket={socket} ></Device>
 
           </View>
           

@@ -35,6 +35,7 @@
     "react-native": "^0.71.14",
     "react-native-awesome-gallery": "^0.3.8",
     "react-native-big-list": "^1.6.1",
+    "react-native-ble-plx": "^3.2.1",
     "react-native-callkeep": "^4.3.4",
     "react-native-canvas": "^0.1.39",
     "react-native-exit-app": "^2.0.0",
